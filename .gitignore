@@ -1,0 +1,15 @@
+#Compiled executable
+/search
+
+#Object files
+*.o
+
+#Build directories
+/build/
+
+#Test images and datasets
+/data/
+
+#Crash files
+core
+core.*

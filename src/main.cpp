@@ -19,7 +19,7 @@ int main() {
     std::cout << "Height: " << image.rows << '\n';
 
 
-
+/////SIFT algorithm is given in class PDFs. will arrange it as well.
 
 
 

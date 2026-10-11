@@ -36,3 +36,6 @@ the makefile already uses LDLIBS = $(shell pkg-config --libs opencv4) so anyones
 You can use make clean and make regulary. 
 if vscode has issues with SIFT you can use 
 bear make clean all to ignore these errors (supposed your opencv version is compatible)
+
+OR on newer build 
+bear -- make clean all

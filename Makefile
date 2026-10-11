@@ -11,6 +11,6 @@ $(TARGET): $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET) $(LDLIBS)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) src/search
 
 .PHONY: all clean

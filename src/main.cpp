@@ -21,7 +21,14 @@ int main() {
     std::cout << "Height: " << image.rows << '\n';
 
     auto sift = cv::SIFT::create();
+    std::vector<cv::KeyPoint> keypoints;  //vector of keypoints to store after the function call
+    cv::Mat descriptors;  //object to store the descriptor matrix 
+    //const char* image_path= "data/samples/test.jpeg";
+    sift->detectAndCompute(image,cv::noArray(),keypoints,descriptors);
 
+    std::cout << "keypoints size " << keypoints.size() << '\n' ;
+    std::cout << "descripotrs size " << descriptors.rows << '\n' ; //total number of keypoints 
+    std::cout << "descripotrs size " << descriptors.cols << '\n' ; //must always be 128 
 
 
 

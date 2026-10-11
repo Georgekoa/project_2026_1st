@@ -24,3 +24,15 @@ cd project_2026_1st
 bear make clean all  (this  commands uses make and copies the compilation commands to a json file used by intelissense) 
 
 the file created by bear is called compile_commands.json by default. Dont rename it as, renaming it will push it to the repository. 
+
+the makefile already uses LDLIBS = $(shell pkg-config --libs opencv4) so anyones opencv library will be found automatically 
+
+
+
+
+
+## Building guide
+
+You can use make clean and make regulary. 
+if vscode has issues with SIFT you can use 
+bear make clean all to ignore these errors (supposed your opencv version is compatible)

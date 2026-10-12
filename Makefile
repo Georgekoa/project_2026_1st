@@ -1,9 +1,9 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -g $(shell pkg-config --cflags opencv4)
+CXXFLAGS = -std=c++17 -Wall -Wextra -g -Iinclude $(shell pkg-config --cflags opencv4)
 LDLIBS = $(shell pkg-config --libs opencv4)
 
 TARGET = search
-SOURCES = src/main.cpp
+SOURCES = src/main.cpp src/functions.cpp
 
 all: $(TARGET)
 

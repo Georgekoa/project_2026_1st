@@ -39,3 +39,9 @@ bear make clean all to ignore these errors (supposed your opencv version is comp
 
 OR on newer build 
 bear -- make clean all
+
+
+## Building of project proccess 
+
+First we tested SIFT function and usability on a hardcoded image.
+we will now create a dedicated function to make it reusbale for hundreds of images.

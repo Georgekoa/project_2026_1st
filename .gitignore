@@ -20,6 +20,6 @@ core.*
 /compile_commands.json
 
 
-#datasets
+#datasets (reduncuncy, data works too)
 /data/mirflickr25k/mirflickr/
 /data/hpatches-sequences-release/hpatches-sequences-release/

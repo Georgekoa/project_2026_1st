@@ -18,3 +18,8 @@ core.*
 
 #file created by bear to let vscode use the same commands as the compiler
 /compile_commands.json
+
+
+#datasets
+/data/mirflickr25k/mirflickr/
+/data/hpatches-sequences-release/hpatches-sequences-release/

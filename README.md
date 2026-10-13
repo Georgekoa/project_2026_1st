@@ -45,3 +45,8 @@ bear -- make clean all
 
 First we tested SIFT function and usability on a hardcoded image.
 we will now create a dedicated function to make it reusbale for hundreds of images.
+
+
+ downloaded the mirflickr data set using this command wget  http://press.liacs.nl/mirflickr/mirflickr25k.v3b/mirflickr25k.zip
+
+ and hpatches by this repository : https://github.com/hpatches/hpatches-dataset

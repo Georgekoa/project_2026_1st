@@ -17,3 +17,6 @@
     return descriptors;
 
 }
+
+
+//   wget  http:  //press.liacs.nl/mirflickr/mirflickr25k.v3b/mirflickr25k.zip

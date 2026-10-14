@@ -30,7 +30,7 @@ std::vector<std::string> txt_reader(std::string& file_path){
     std::string sequence_name;
     std::string split;
 
-    while (file >> sequence_name >> split) { //only whitespace is the actual space in between the line. 
+    while (file >> sequence_name >> split) { //only whitespace is the actual space in between the line. , so ultimately as long as it can read the line it enters the while loop, when eof it will skip.
         if (split == "train"){
             training_sequences.push_back(sequence_name);
         }

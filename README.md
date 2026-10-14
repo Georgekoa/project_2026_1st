@@ -50,3 +50,9 @@ we will now create a dedicated function to make it reusbale for hundreds of imag
  downloaded the mirflickr data set using this command wget  http://press.liacs.nl/mirflickr/mirflickr25k.v3b/mirflickr25k.zip
 
  and hpatches by this repository : https://github.com/hpatches/hpatches-dataset
+
+ ## implemeantion
+
+ std::vector<std::string> txt_reader(std::string& file_path); 
+ this func will just read the the split file (it will be hardcoded in the beggining, maybe all the way to the end) and returns a vector of strings where we are going to store the images name to.  
+ we chose to use the >> operator to split the split.txt file as it will stop at whitespaces.

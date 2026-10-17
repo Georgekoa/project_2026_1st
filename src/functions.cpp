@@ -66,6 +66,6 @@ void Matrix_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_
     
 }
 
-cv::Mat collect_training_descriptors(std::string& sequence_name){  //we will create a cv::mat for the 6 images in the sequence and we will pass it in the main to the matrix combine func
-    
-}
+// cv::Mat collect_training_descriptors(std::string& sequence_name){  //we will create a cv::mat for the 6 images in the sequence and we will pass it in the main to the matrix combine func
+
+// }

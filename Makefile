@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -g -Iinclude $(shell pkg-config --cflags ope
 LDLIBS = $(shell pkg-config --libs opencv4)
 
 TARGET = search
-SOURCES = src/main.cpp src/functions.cpp
+SOURCES = src/main.cpp src/functions.cpp src/kmeans.cpp
 
 all: $(TARGET)
 

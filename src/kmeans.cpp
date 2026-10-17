@@ -22,4 +22,5 @@ std::vector<std::vector<float>> initiliaze_centers(std::vector<std::vector<float
     for (int i = 0; i < 256; i++){
         centers.push_back(master_vector[indixes[i]]);   //and we push back to our centers vector the actual rows (vectors) of our master vector that corresponds to our random 256 indexes.
     }
+    return centers;
 }

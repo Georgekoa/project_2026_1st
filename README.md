@@ -19,9 +19,9 @@ for intelissense issues:
 3) Install Bear if it isn't installed already.
 4) Generate the local compilation database.
 
-sudo apt install bear
-cd project_2026_1st
-bear make clean all  (this  commands uses make and copies the compilation commands to a json file used by intelissense) 
+sudo apt install bear <br>
+cd project_2026_1st  <br>
+bear make clean all  (this  commands uses make and copies the compilation commands to a json file used by intelissense) <br>
 
 the file created by bear is called compile_commands.json by default. Dont rename it as, renaming it will push it to the repository. 
 
@@ -56,3 +56,15 @@ we will now create a dedicated function to make it reusbale for hundreds of imag
  std::vector<std::string> txt_reader(std::string& file_path); 
  this func will just read the the split file (it will be hardcoded in the beggining, maybe all the way to the end) and returns a vector of strings where we are going to store the images name to.  
  we chose to use the >> operator to split the split.txt file as it will stop at whitespaces.
+
+void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_vector);<br>
+void collect_training_descriptors(std::vector<std::string>  training_sequences,std::vector<std::vector<float>>& master_vector);<br>
+
+for those two functions the logic is basically collect_training_descriptors being the coordinator who calls vector_combine on each image to get the first 500 descs to the master vector where we will keep our training data.<br>
+
+in detail, txt_reader leaves us with a vector of strings with the training sequences names. so collect builds the full path names using the generic root path and adding the strings from the txt vector + the number of the image and the .ppm in the end. that leaves us with a clear path name that we can call sift_extractor to. <br>
+So we iterate through the whole training sequences, we build the path, we call sift extractors which returns a matrix and then vector_combine converts those matrices to vector of vectors and adds it to our master vector
+
+after that the master vector consist of 128 collumns, which is expected and 206122 rows. A number which is most likely correct as the maximum numbers of sift descriptors after our 500 limit cutoff is 210.000
+(70 sequences * 6 images * 500 descriptors)
+Assuming some images wont have 500 descriptors but less, this number makes sense.

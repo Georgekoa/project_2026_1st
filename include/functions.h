@@ -6,7 +6,7 @@
 
 cv::Mat SIFT_extractor(const std::string& path);
 std::vector<std::string> txt_reader(std::string& file_path);  
-void Matrix_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_matrix);
-cv::Mat collect_training_descriptors(std::string& sequence_name);
+void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_vector);
+void collect_training_descriptors(std::vector<std::string>  training_sequences,std::vector<std::vector<float>>& master_vector);
 
 #endif

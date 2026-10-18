@@ -74,5 +74,16 @@ Assuming some images wont have 500 descriptors but less, this number makes sense
 
 **float calculate_distance(std::vector<float>& point_a , std::vector<float>& point_b, int dimensions)** this functions builds the eucledian distance of two vectors (squared) and returns the outcome. altough the diatnce is sqrt(outcome) we return the squared outcome which works the same way as every dimension difference is squared (so only positive values)
 
-**int find_nearest_center(std::vector<float> descriptor, std::vector<std::vector<float>> centers)** takes a decriptor point and the centers (either initial or subsequent) and uses the calculate distance function to find the nearest center of this descxriptor. 
+**int find_nearest_center(std::vector<float> descriptor, std::vector<std::vector<float>> centers)** takes a descriptor point and the centers (either initial or subsequent) and uses the calculate distance function to find the nearest center of this descxriptor. 
 initially the return type was std::vector<float> so we used to return the actual centers, it was helpful for debugging purposes but we need to return the indexes rather than vectors.
+
+**std::vector<int> assign_centers(std::vector<std::vector<float>> master_vector, std::vector<std::vector<float>> centers )**
+this function takes the descriptors and the current centers, and it assigned the centers to the descriptor by creating a vector with size of the # of descriptors and on each cell we assign the index of the corresponding center assigbned to
+so ultimately we have a lets say 10 descriptors and 4 centers, the vector of ints from this function is going to be 
+e.g {2,1,4,3,...,1} 
+
+
+**void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions)**  NOT FINISHED YET
+this function takes a vector of ints that contain for every descriptor its assigned center, the dimensions count for clarity (in the end its going to be 128) the descriptors (master_vector) and the actual centers.
+until now we have built this function to only calculate the sum of every dimension of every center's assigned descriptors and the count of the assigned descriptors so we can calucalte the new center with averages. 
+the divide part and the edge case of zero sums, to be done tomorrow 

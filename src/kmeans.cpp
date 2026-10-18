@@ -46,3 +46,23 @@ int find_nearest_center(std::vector<float> descriptor, std::vector<std::vector<f
     }
     return min_index; 
 }
+
+std::vector<int> assign_centers(std::vector<std::vector<float>> master_vector, std::vector<std::vector<float>> centers){
+    std::vector<int> assigned_centers;
+    for (int i = 0 ; i < master_vector.size(); i++){
+       int current_center_index = find_nearest_center(master_vector[i],centers);
+        assigned_centers[i] = current_center_index ;
+    }
+    return assigned_centers;
+}
+
+void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions){   //dimensions will be 128 for sift descriptors
+    std::vector<std::vector<float>> sums(centers.size(), std::vector<float>(dimensions, 0.0f));   //a vector of vectors again to storee for each center the sum of their corresponding descriptors (in different dimensions)
+    std::vector<int> counts(centers.size(),0);  //the count of total descriptors assigned to each center
+    for(int i = 0 ; i < master_vector.size() ; i++){
+        counts[assigned_index[i]]+=1;
+        for(int j = 0 ; j < dimensions ; j ++){
+            sums[assigned_index[i]][j] += master_vector[i][j];
+        }
+    }
+}

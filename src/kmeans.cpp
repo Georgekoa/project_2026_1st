@@ -25,7 +25,7 @@ std::vector<std::vector<float>> initialize_centers(std::vector<std::vector<float
     return centers;
 }
 
-float calculate_distance(std::vector<float>& point_a , std::vector<float>& point_b, int dimensions){    //dimensions is probably going to be user only for testing, as the normal dimensions count is 128
+float calculate_distance(std::vector<float>& point_a , std::vector<float>& point_b, int dimensions){    //dimensions is probably going to be used only for testing, as the normal dimensions count is 128
     float sum = 0; 
     for(int i = 0 ; i < dimensions ; i++){   //if dimensions are 128 then we iterate to 127
         sum += (point_a[i]-point_b[i])*(point_a[i]-point_b[i]);

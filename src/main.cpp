@@ -35,7 +35,7 @@ int main() {
 
 
     // distance tester
-    std::vector<float> point_a = {1, 2, 3};
+    std::vector<float> point_a = {1, 2, 3};  //test vectors
     std::vector<float> point_b = {4, 6, 3};
 
     std::cout << calculate_distance(point_a, point_b , 3) << '\n';

@@ -71,3 +71,5 @@ Assuming some images wont have 500 descriptors but less, this number makes sense
 
 
 **initialize_centers** just takes the master vector, build a vector of the same size with the cells containing just an indexing (0,1,2,....,~200k), suffles it and then we pick the first 256 cells, after which we make another vector of vectors to represent our centers, and we push back the master_vector contents from tyhe first 256 indexes (so ultimately we get random distinct push backs)
+
+**float calculate_distance(std::vector<float>& point_a , std::vector<float>& point_b, int dimensions)** this functions builds the eucledian distance of two vectors (squared) and returns the outcome. altough the diatnce is sqrt(outcome) we return the squared outcome which works the same way as every dimension difference is squared (so only positive values)

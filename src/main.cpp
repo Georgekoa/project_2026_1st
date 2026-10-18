@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
 #include "functions.h"
+#include "kmeans.h"
 
 int main() {
     //SIFT TESTER
@@ -26,5 +27,17 @@ int main() {
     std::cout << "Master vector rows: " << master_vector.size() << '\n'; 
     std::cout << "Master vector columns: " << master_vector[0].size() << '\n';
 
+    //Init centers tester
+    std::vector<std::vector<float>> centers = initialize_centers(master_vector);
+
+    std::cout << "Center count: " << centers.size() << '\n';  //the size of the vector should be 256
+    std::cout << "Dimensions per center: " << centers[0].size() << '\n';   //the size of the first cell on the vector should be 128 
+
+
+    // distance tester
+    std::vector<float> point_a = {1, 2, 3};
+    std::vector<float> point_b = {4, 6, 3};
+
+    std::cout << calculate_distance(point_a, point_b , 3) << '\n';
     return 0;
 }

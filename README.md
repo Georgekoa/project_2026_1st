@@ -87,3 +87,5 @@ e.g {2,1,4,3,...,1}
 this function takes a vector of ints that contain for every descriptor its assigned center, the dimensions count for clarity (in the end its going to be 128) the descriptors (master_vector) and the actual centers.
 until now we have built this function to only calculate the sum of every dimension of every center's assigned descriptors and the count of the assigned descriptors so we can calucalte the new center with averages. 
 the divide part and the edge case of zero sums, to be done tomorrow 
+
+to be edited with final kmeans function

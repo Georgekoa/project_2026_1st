@@ -38,7 +38,7 @@ int main() {
     std::vector<float> point_a = {1, 2, 3};  //test vectors
     std::vector<float> point_b = {4, 6, 3};
 
-    std::cout << calculate_distance(point_a, point_b , 3) << '\n';
+    //std::cout << calculate_distance(point_a, point_b , 3) << '\n';
 
     //best centers tester
     std::vector<std::vector<float>> points {  //predictable decriptors for testing purposes
@@ -48,12 +48,30 @@ int main() {
         {9,8,0}
     };
     std::vector<std::vector<float>> centers = initialize_centers(points,2);   //initialze just 2 centers
+    std::vector<int> assigned_index ; //assume assignments for testing
     for (int i = 0 ; i < points.size(); i ++){    //in the outer for loop we find the nearest cenbter for each point (descriptor) then we print it
-        int current_center_index = find_nearest_center(points[i], centers); 
-        
+        int current_center_index = find_nearest_center(points[i], centers); //it returns the index of the nearest center
         std::cout << current_center_index << "\n";
+        assigned_index.push_back(current_center_index); 
     }
     
+    //update centers tester
+    for(int i = 0 ; i < centers.size(); i++){        //CENTERS BEFORE
+        for(int j = 0; j < 3 ; j++){
+            std::cout << centers[i][j]<<" ";
+        }
+        std::cout << "\n";
+    }
 
+    update_centers(assigned_index,points,centers,3);
+    
+    for(int i = 0 ; i < centers.size(); i++){        //CENTERS AFTER
+        for(int j = 0; j < 3 ; j++){
+            std::cout << centers[i][j]<<" ";
+        }
+        std::cout << "\n";
+    }
+
+    
     return 0;
 }

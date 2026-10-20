@@ -55,14 +55,41 @@ std::vector<int> assign_centers(std::vector<std::vector<float>> master_vector, s
     }
     return assigned_centers;
 }
-
-void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions){   //dimensions will be 128 for sift descriptors
-    std::vector<std::vector<float>> sums(centers.size(), std::vector<float>(dimensions, 0.0f));   //a vector of vectors again to storee for each center the sum of their corresponding descriptors (in different dimensions)
+//centers.size =  # of centers
+void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions){   //dimensions will be 128 for sift descriptors, assigned_index.size = master_vector = # of descs
+    std::vector<std::vector<float>> sums(centers.size(), std::vector<float>(dimensions, 0.0f));   //a vector of vectors again to store for each center the sum of their corresponding descriptors (in different dimensions)
     std::vector<int> counts(centers.size(),0);  //the count of total descriptors assigned to each center
     for(int i = 0 ; i < master_vector.size() ; i++){
-        counts[assigned_index[i]]+=1;
+        counts[assigned_index[i]]+=1;   //at the center's position in counts that corresponds to i incerement by 1
         for(int j = 0 ; j < dimensions ; j ++){
-            sums[assigned_index[i]][j] += master_vector[i][j];
+            sums[assigned_index[i]][j] += master_vector[i][j]; 
+        }
+
+    }
+    for (int i=0 ; i < counts.size() ; i++){  //counts.size is the same as centers.size 
+        for(int j = 0 ; j < dimensions ; j ++){
+            if (counts[i] == 0) { //if no one uses this center then we leave it as is.
+                continue; 
+            }
+            centers[i][j]=sums[i][j]/counts[i];
         }
     }
+
+}
+
+
+std::vector<std::vector<float>> kmeans(std::vector<std::vector<float>>& master_vector, int dimensions, int kmeans_max_iterations, int center_count){  //it will return the centers vector of vectors
+    
+    std::vector<std::vector<float>> centers = initialize_centers(master_vector,center_count);   
+    std::vector<int> assigned_centers = assign_centers(master_vector, centers);
+    std::vector<int> old_assignments = assigned_centers;
+    for(int i = 0 ; i < kmeans_max_iterations; i ++){
+        update_centers(assigned_centers,master_vector, centers, dimensions);
+        assigned_centers = assign_centers(master_vector, centers);
+        if(old_assignments == assigned_centers){
+            break;
+        }
+        old_assignments = assigned_centers;
+    }
+    return centers;
 }

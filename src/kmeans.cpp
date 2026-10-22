@@ -51,10 +51,11 @@ std::vector<int> assign_centers(std::vector<std::vector<float>> master_vector, s
     std::vector<int> assigned_centers;
     for (int i = 0 ; i < master_vector.size(); i++){
        int current_center_index = find_nearest_center(master_vector[i],centers);
-        assigned_centers[i] = current_center_index ;
+        assigned_centers.push_back(current_center_index ) ;
     }
     return assigned_centers;
 }
+
 //centers.size =  # of centers
 void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions){   //dimensions will be 128 for sift descriptors, assigned_index.size = master_vector = # of descs
     std::vector<std::vector<float>> sums(centers.size(), std::vector<float>(dimensions, 0.0f));   //a vector of vectors again to store for each center the sum of their corresponding descriptors (in different dimensions)
@@ -79,17 +80,21 @@ void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<fl
 
 
 std::vector<std::vector<float>> kmeans(std::vector<std::vector<float>>& master_vector, int dimensions, int kmeans_max_iterations, int center_count){  //it will return the centers vector of vectors
-    
+    std::cout<< "test"<<"\n";
     std::vector<std::vector<float>> centers = initialize_centers(master_vector,center_count);   
+    std::cout<< "test2"<<"\n";
     std::vector<int> assigned_centers = assign_centers(master_vector, centers);
+    std::cout<< "test3"<<"\n";
     std::vector<int> old_assignments = assigned_centers;
+    std::cout<< "test4"<<"\n";
     for(int i = 0 ; i < kmeans_max_iterations; i ++){
+        std::cout<< "test"<< i << "\n";
         update_centers(assigned_centers,master_vector, centers, dimensions);
         assigned_centers = assign_centers(master_vector, centers);
         if(old_assignments == assigned_centers){
-            break;
+            break;          //optimal state, no change in centers
         }
-        old_assignments = assigned_centers;
+        old_assignments = assigned_centers;         //old will be used in the next iteration.
     }
     return centers;
 }

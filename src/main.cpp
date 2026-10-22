@@ -47,24 +47,24 @@ int main() {
         {8,8,0},
         {9,8,0}
     };
-    std::vector<std::vector<float>> centers = initialize_centers(points,2);   //initialze just 2 centers
-    std::vector<int> assigned_index ; //assume assignments for testing
-    for (int i = 0 ; i < points.size(); i ++){    //in the outer for loop we find the nearest cenbter for each point (descriptor) then we print it
-        int current_center_index = find_nearest_center(points[i], centers); //it returns the index of the nearest center
-        std::cout << current_center_index << "\n";
-        assigned_index.push_back(current_center_index); 
-    }
+    // std::vector<std::vector<float>> centers = initialize_centers(points,2);   //initialze just 2 centers
+    // std::vector<int> assigned_index ; //assume assignments for testing
+    // for (int i = 0 ; i < points.size(); i ++){    //in the outer for loop we find the nearest cenbter for each point (descriptor) then we print it
+    //     int current_center_index = find_nearest_center(points[i], centers); //it returns the index of the nearest center
+    //     std::cout << current_center_index << "\n";
+    //     assigned_index.push_back(current_center_index); 
+    // }
     
     //update centers tester
-    for(int i = 0 ; i < centers.size(); i++){        //CENTERS BEFORE
-        for(int j = 0; j < 3 ; j++){
-            std::cout << centers[i][j]<<" ";
-        }
-        std::cout << "\n";
-    }
+    // for(int i = 0 ; i < centers.size(); i++){        //CENTERS BEFORE
+    //     for(int j = 0; j < 3 ; j++){
+    //         std::cout << centers[i][j]<<" ";
+    //     }
+    //     std::cout << "\n";
+    // }
 
-    update_centers(assigned_index,points,centers,3);
-    
+    //update_centers(assigned_index,points,centers,3);
+    std::vector<std::vector<float>> centers = kmeans(points, 3, 100, 2);
     for(int i = 0 ; i < centers.size(); i++){        //CENTERS AFTER
         for(int j = 0; j < 3 ; j++){
             std::cout << centers[i][j]<<" ";

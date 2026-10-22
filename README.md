@@ -83,9 +83,11 @@ so ultimately we have a lets say 10 descriptors and 4 centers, the vector of int
 e.g {2,1,4,3,...,1} 
 
 
-**void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions)**  NOT FINISHED YET
+**void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>>& centers, int dimensions)**  
 this function takes a vector of ints that contain for every descriptor its assigned center, the dimensions count for clarity (in the end its going to be 128) the descriptors (master_vector) and the actual centers.
-until now we have built this function to only calculate the sum of every dimension of every center's assigned descriptors and the count of the assigned descriptors so we can calucalte the new center with averages. 
-the divide part and the edge case of zero sums, to be done tomorrow 
+Then we iterate over all centers and we update them with the average on every dimension of the clustered descriptions. 
+we leave non used centers untouched.
 
-to be edited with final kmeans function
+**std::vector<std::vector<float>> kmeans(std::vector<std::vector<float>>& master_vector, int dimensions, int kmeans_max_iterations, int center_count)**
+this function uses our helper functions. it initializes the centers, assign them to descriptors and then start a loop which ends after a set amount of iterations passed as an argument OR when the centers havent changed, which means we ave reach the optimal state. We then return the new centers, which is up for improvment because update_centers is basically modyfying the vector as well. returning i as well might cause a slight unecessary overhead. 
+

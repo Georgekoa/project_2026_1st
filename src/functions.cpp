@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <filesystem> //needed for constructing the file name paths 
+#include <random>
 
     cv::Mat SIFT_extractor(const std::string& path){  //const & as to not create another copy
     cv::Mat image = cv::imread(path, cv::IMREAD_GRAYSCALE);  //we dont care about color
@@ -41,17 +42,26 @@ std::vector<std::string> txt_reader(std::string& file_path){
 
 }
 
-void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_vector){  //this function will return a vector of vectors so we can combine evrry sift descriptor (up until 500th row) , master mateix is a refernce so it will get updated
+void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_vector, std::mt19937& gen){  //this function will return a vector of vectors so we can combine evrry sift descriptor (up until 500th row) , master mateix is a refernce so it will get updated
+    
+
+    std::vector<int> indexes(new_matrix.rows);  //init a vector with size as the # of descr
+    for(int i = 0 ; i < indexes.size(); i++){
+        indexes[i] = i;  
+    }
+ 
+   
+    std::shuffle(indexes.begin(), indexes.end(), gen);
+
     
     if(new_matrix.rows > 500){ 
-        for (int i = 0; i<500 ;i++){  //outer for is for rows
-            std::vector<float> temp;    //create an empoty vector which is needed for pushing it back on our master vector of vectors
-            for(int j = 0 ; j<128 ; j++){   //for collumns (always 128)
-               temp.push_back(new_matrix.at<float>(i,j));  //copying each row
+        for(int i = 0 ; i < 500 ; i++){
+            std::vector<float> temp;
+            for(int j = 0 ; j < new_matrix.cols ;j++){
+                temp.push_back(new_matrix.at<float>(indexes[i],j)); // pick the rows of the suffled order
             }
-            master_vector.push_back(temp);
-            
-        }
+            master_vector.push_back(temp);   //push back the current row, which can be any rows at al.
+    }
         return;
     }
     if (new_matrix.rows <= 500 ) //could do it without second if, but we prefer it for clarity
@@ -70,6 +80,7 @@ void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_
 
 void collect_training_descriptors(std::vector<std::string>  training_sequences,std::vector<std::vector<float>>& master_vector ){  
     std::filesystem::path rootpath = "data/hpatches-sequences-release/hpatches-sequences-release";
+    std::mt19937 gen(214);   //initializing a generator whihc we are going to use over and over
     for (int i = 0 ;  i < training_sequences.size() ; i++ ){     //should be 70 no matter what
         std::filesystem::path current_sequence = training_sequences[i];  //even though training_sequences[i] is a string, c++ know how to convert because there is a constructor for it.
         for(int j = 1 ; j <= 6 ; j++){
@@ -77,7 +88,7 @@ void collect_training_descriptors(std::vector<std::string>  training_sequences,s
            std::filesystem::path cur_image_path = rootpath / current_sequence / (std::to_string(j) + ".ppm");
            std::string full_pathname = cur_image_path; //need the path as a string for sift_extrator()
            temp_matrix  = SIFT_extractor(full_pathname);
-           vector_combine(temp_matrix, master_vector);
+           vector_combine(temp_matrix, master_vector, gen);
         }
     }
 }

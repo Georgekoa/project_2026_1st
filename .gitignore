@@ -23,3 +23,7 @@ core.*
 #datasets (reduncuncy, data works too)
 /data/mirflickr25k/mirflickr/
 /data/hpatches-sequences-release/hpatches-sequences-release/
+
+#keep vocab out of git, code remains though.
+/vocabulary*.txt
+/test.txt

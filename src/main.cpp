@@ -98,4 +98,17 @@ for(int i = 0 ; i < centers.size(); i++){
     }
 }
         std::cout<< all_valid;
+
+std::filesystem::path vocabulary_30_txt = "./vocabulary_30.txt";
+//std::filesystem::path test_txt = "./test.txt" ;   //testing purposes
+// save_centers(centers, vocabulary_30_txt);  //file already exists, uncomment to create it
+std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_txt);
+// if (centers_no_kmeans == centers){
+//     std::cout << "loading works \n";
+// }
+// else{
+//     std::cout << "loading doesnt work \n" ;
+// }
+//save_centers(centers_no_kmeans,test_txt);   //only for testing to see that the two files are identical
+
 }

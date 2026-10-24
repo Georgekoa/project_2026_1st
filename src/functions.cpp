@@ -92,3 +92,5 @@ void collect_training_descriptors(std::vector<std::string>  training_sequences,s
         }
     }
 }
+
+

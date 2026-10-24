@@ -107,3 +107,33 @@ std::vector<std::vector<float>> kmeans(std::vector<std::vector<float>>& master_v
 
     return centers;
 }
+
+void save_centers(std::vector<std::vector<float>>& centers, std::filesystem::path& file_name){
+    std::ofstream file(file_name);  //open the file
+    file << centers.size() <<" "<<centers[0].size() << "\n" ; 
+    for(int i = 0 ; i < centers.size(); i ++){
+        for(int j =0 ; j< centers[0].size(); j++){
+            file << centers[i][j] << " " ; 
+        }
+        file << "\n" ; 
+    }
+}
+
+std::vector<std::vector<float>> load_centers(std::filesystem::path& file_path){
+    std::vector<std::vector<float>> centers;
+    std::ifstream file(file_path);
+    int center_count;
+    int dimensions;
+    file >> center_count >> dimensions;    // for knowing how many rows and cols there are
+    std::string number;
+    
+    for(int i = 0 ; i < center_count; i++){
+        std::vector<float> temp;
+        for(int j = 0 ; j < dimensions ; j++){
+            file >> number ;
+            temp.push_back(std::stof(number));  //centers[i] dont exist yet. so we create a temp vector to push to centers all together
+        }
+        centers.push_back(temp); 
+    }
+    return centers;
+}

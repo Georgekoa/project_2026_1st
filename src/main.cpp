@@ -83,10 +83,19 @@ int main() {
 
 
 //DATA SET training
-
-std::vector<std::vector<float>> centers = kmeans(master_vector, 128, 5, 256);
-
+int dimensions = 128;
+std::vector<std::vector<float>> centers = kmeans(master_vector, dimensions, 30, 256);
+bool all_valid = true;
 std::cout << centers.size() << "\n";
 std::cout <<centers[0].size() << "\n";
 
+for(int i = 0 ; i < centers.size(); i++){
+    for(int j = 0 ; j < dimensions; j++){
+        if(std::isfinite(centers[i][j])!=true){
+            all_valid = false;
+            break;
+        }
+    }
+}
+        std::cout<< all_valid;
 }

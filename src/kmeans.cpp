@@ -86,15 +86,24 @@ std::vector<std::vector<float>> kmeans(std::vector<std::vector<float>>& master_v
     std::vector<int> assigned_centers = assign_centers(master_vector, centers);
     
     std::vector<int> old_assignments = assigned_centers;
-    
+     
     for(int i = 0 ; i < kmeans_max_iterations; i ++){
-        
+        std::cout << "ITERATION " << i << "\n" ;
+        int changed_count = 0 ;   //count for how many descriptors changed center
         update_centers(assigned_centers,master_vector, centers, dimensions);
         assigned_centers = assign_centers(master_vector, centers);
         if(old_assignments == assigned_centers){
             break;          //optimal state, no change in centers
         }
+        for(int k = 0 ; k < master_vector.size(); k++){
+            if(old_assignments[k] != assigned_centers[k]){
+                changed_count += 1;
+            }
+        }
         old_assignments = assigned_centers;         //old will be used in the next iteration.
+        std::cout << "Descriptors changed center: " << changed_count << "\n" ; 
     }
+
+
     return centers;
 }

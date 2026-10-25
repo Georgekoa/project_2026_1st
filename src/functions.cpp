@@ -99,7 +99,7 @@ void collect_training_descriptors(std::vector<std::string>  training_sequences,s
 std::vector<float> create_histogram(std::vector<std::vector<float>>& centers, cv::Mat& descriptors_mat){
     std::vector<float> histogram = std::vector<float>(centers.size(),0.0f);
     std::vector<std::vector<float>> descriptors_vector = convert_mat_to_vector(descriptors_mat);
-    int test_sum = 0 ;
+    //int test_sum = 0 ;
     if(descriptors_vector.empty()){
         return histogram;
     }
@@ -108,10 +108,10 @@ std::vector<float> create_histogram(std::vector<std::vector<float>>& centers, cv
         histogram[index]+=1;
     }
     for(int j = 0 ; j < centers.size(); j ++){
-        test_sum += histogram[j]; //before normalazation
+        //test_sum += histogram[j]; //before normalazation
         histogram[j] = histogram[j]/descriptors_vector.size();  // we divide by the # of descs so all the cells sum to 1.
     }
-    std::cout << "total unormalized sum is: " << test_sum << "\n";  //test sum, should be descriptors count
+    //std::cout << "total unormalized sum is: " << test_sum << "\n";  //test sum, should be descriptors count
     return histogram;
 }
 

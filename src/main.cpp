@@ -3,6 +3,7 @@
 #include <opencv2/features2d.hpp>
 #include "functions.h"
 #include "kmeans.h"
+#include "algorithms.h"
 
 int main() {
     //SIFT TESTER + histogram tester
@@ -19,11 +20,11 @@ int main() {
 
 
 
-//     // SPLIT.TXT tester
+    // SPLIT.TXT tester
 
-    // std::string split_txt = "split.txt";
-    // std::vector<std::string>  training_sequences = txt_reader(split_txt);
-    //std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
+    std::string split_txt = "split.txt";
+    std::vector<std::string>  training_sequences = txt_reader(split_txt);
+    std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
     //master vector tester
     // std::vector<std::vector<float>> master_vector;
     // collect_training_descriptors(training_sequences, master_vector);
@@ -113,15 +114,38 @@ std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_t
 //     std::cout << "loading doesnt work \n" ;
 // }
 //save_centers(centers_no_kmeans,test_txt);   //only for testing to see that the two files are identical
-std::vector<float> histogram = create_histogram(centers_no_kmeans, descriptors);    //test images descriptors 
-std::cout << "histogram size: " << histogram.size() << "\n";
-float sum=0;
-for(int i = 0 ; i < histogram.size(); i++){
-    if(histogram[i]>1 || histogram[i] < 0){
-        std::cerr << "found out-of-bounds value\n";
+// std::vector<float> histogram = create_histogram(centers_no_kmeans, descriptors);    //test images descriptors 
+// std::cout << "histogram size: " << histogram.size() << "\n";
+// float sum=0;
+// for(int i = 0 ; i < histogram.size(); i++){
+//     if(histogram[i]>1 || histogram[i] < 0){
+//         std::cerr << "found out-of-bounds value\n";
+//     }
+//     //std::cout << histogram[i] << " ";
+//     sum+= histogram[i];
+//     }
+//     std::cout << "total sum is: " << sum << "\n" ; 
+
+std::vector<ImageData> database;   //it stores histograms and id for all images
+std::string rootpath = "data/hpatches-sequences-release/hpatches-sequences-release/" ;
+for(int i = 0 ; i < training_sequences.size(); i++){
+    for(int j = 1 ; j <=6 ;j++){
+        std::string relative_path =  rootpath + training_sequences[i] + "/" +  std::to_string(j) + ".ppm" ;
+        cv::Mat descriptors = SIFT_extractor(relative_path); //training sequences stores the sequences path
+        if (descriptors.empty()) {
+            std::cerr << "skipping image: " << relative_path << "\n";
+            continue;
+        }
+        ImageData image_data;
+        image_data.image_id = relative_path;  //store it in the struct object
+        image_data.histogram = create_histogram(centers_no_kmeans, descriptors);
+        database.push_back(image_data);
     }
-    //std::cout << histogram[i] << " ";
-    sum+= histogram[i];
+}
+    std::cout <<"total number of proccesses images "<<database.size()<<"\n";
+
+    std::vector<Searchresult> leaderboard = exact_search(database[0].histogram, database, 10);
+    for(int i = 0 ; i < leaderboard.size(); i++){
+        std::cout << i << " " <<leaderboard[i].id << " " << leaderboard[i].distance << "\n" ;
     }
-    std::cout << "total sum is: " << sum << "\n" ; 
 }

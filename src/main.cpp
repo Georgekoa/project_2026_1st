@@ -5,25 +5,28 @@
 #include "kmeans.h"
 
 int main() {
-    //SIFT TESTER
-    // std::string path = "data/samples/test.jpeg";
-    // cv::Mat descriptors = SIFT_extractor(path);
-    // std::cout << "sift rows: " << descriptors.rows << "\n";  // # of keypoints
-    // std::cout << "sift collumns : " << descriptors.cols << "\n";  // 128 (std number of sift vector)
+    //SIFT TESTER + histogram tester
+    std::string path = "data/samples/test.jpeg";
+    cv::Mat descriptors = SIFT_extractor(path);
+    std::cout << "sift rows: " << descriptors.rows << "\n";  // # of keypoints
+    std::cout << "sift collumns : " << descriptors.cols << "\n";  // 128 (std number of sift vector)
     // std::vector<std::vector<float>> master_vector;
     // std::mt19937 gen(214);
     //  std::cout << master_vector.size() << "\n";
     // vector_combine(descriptors,master_vector,gen);
     // std::cout << master_vector.size() << "\n";
+    
+
+
 
 //     // SPLIT.TXT tester
 
-    std::string split_txt = "split.txt";
-    std::vector<std::string>  training_sequences = txt_reader(split_txt);
+    // std::string split_txt = "split.txt";
+    // std::vector<std::string>  training_sequences = txt_reader(split_txt);
     //std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
     //master vector tester
-    std::vector<std::vector<float>> master_vector;
-    collect_training_descriptors(training_sequences, master_vector);
+    // std::vector<std::vector<float>> master_vector;
+    // collect_training_descriptors(training_sequences, master_vector);
     // for(int i = 0 ; i < master_vector.size(); i ++){   //run once to check that the data is getting collected
     //     for (int j = 0 ; j < 128 ; j++){
     //         std::cout << master_vector[i][j];
@@ -83,21 +86,21 @@ int main() {
 
 
 //DATA SET training
-int dimensions = 128;
-std::vector<std::vector<float>> centers = kmeans(master_vector, dimensions, 30, 256);
-bool all_valid = true;
-std::cout << centers.size() << "\n";
-std::cout <<centers[0].size() << "\n";
+// int dimensions = 128;
+// std::vector<std::vector<float>> centers = kmeans(master_vector, dimensions, 30, 256);
+// bool all_valid = true;
+// std::cout << centers.size() << "\n";
+// std::cout <<centers[0].size() << "\n";
 
-for(int i = 0 ; i < centers.size(); i++){
-    for(int j = 0 ; j < dimensions; j++){
-        if(std::isfinite(centers[i][j])!=true){
-            all_valid = false;
-            break;
-        }
-    }
-}
-        std::cout<< all_valid;
+// for(int i = 0 ; i < centers.size(); i++){
+//     for(int j = 0 ; j < dimensions; j++){
+//         if(std::isfinite(centers[i][j])!=true){
+//             all_valid = false;
+//             break;
+//         }
+//     }
+// }
+//         std::cout<< all_valid;
 
 std::filesystem::path vocabulary_30_txt = "./vocabulary_30.txt";
 //std::filesystem::path test_txt = "./test.txt" ;   //testing purposes
@@ -110,5 +113,15 @@ std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_t
 //     std::cout << "loading doesnt work \n" ;
 // }
 //save_centers(centers_no_kmeans,test_txt);   //only for testing to see that the two files are identical
-
+std::vector<float> histogram = create_histogram(centers_no_kmeans, descriptors);    //test images descriptors 
+std::cout << "histogram size: " << histogram.size() << "\n";
+float sum=0;
+for(int i = 0 ; i < histogram.size(); i++){
+    if(histogram[i]>1 || histogram[i] < 0){
+        std::cerr << "found out-of-bounds value\n";
+    }
+    //std::cout << histogram[i] << " ";
+    sum+= histogram[i];
+    }
+    std::cout << "total sum is: " << sum << "\n" ; 
 }

@@ -6,6 +6,8 @@
 #include <string>
 #include <filesystem> //needed for constructing the file name paths 
 #include <random>
+#include <kmeans.h>
+#include <functions.h>
 
     cv::Mat SIFT_extractor(const std::string& path){  //const & as to not create another copy
     cv::Mat image = cv::imread(path, cv::IMREAD_GRAYSCALE);  //we dont care about color
@@ -94,3 +96,38 @@ void collect_training_descriptors(std::vector<std::string>  training_sequences,s
 }
 
 
+std::vector<float> create_histogram(std::vector<std::vector<float>>& centers, cv::Mat& descriptors_mat){
+    std::vector<float> histogram = std::vector<float>(centers.size(),0.0f);
+    std::vector<std::vector<float>> descriptors_vector = convert_mat_to_vector(descriptors_mat);
+    int test_sum = 0 ;
+    if(descriptors_vector.empty()){
+        return histogram;
+    }
+    for(int i = 0 ; i < descriptors_vector.size() ; i++){
+        int index = find_nearest_center(descriptors_vector[i], centers);   //we find that eg on descriptor 1 the nearest centers is 5 . so we go to cell 5 of the histogram and increment it.
+        histogram[index]+=1;
+    }
+    for(int j = 0 ; j < centers.size(); j ++){
+        test_sum += histogram[j]; //before normalazation
+        histogram[j] = histogram[j]/descriptors_vector.size();  // we divide by the # of descs so all the cells sum to 1.
+    }
+    std::cout << "total unormalized sum is: " << test_sum << "\n";  //test sum, should be descriptors count
+    return histogram;
+}
+
+std::vector<std::vector<float >> convert_mat_to_vector(cv::Mat& descriptors){
+    std::vector<std::vector<float>> converted_vector;
+    if(descriptors.empty()){  //cv::mat function 
+        std::cerr<<"No descriptors \n" ;
+        return converted_vector; //empty at this point
+    }
+    
+    for(int i = 0 ; i < descriptors.rows ; i ++){       // this loop is for all the matrix
+        std::vector<float> temp;
+        for(int j = 0 ; j < descriptors.cols ; j ++){  //this loop is for individual descriptors
+            temp.push_back(descriptors.at<float>(i,j));  //cv::mat doesnt support dimensions[i][j]
+        }
+        converted_vector.push_back(temp);
+    }
+    return converted_vector;
+}

@@ -133,7 +133,7 @@ for(int i = 0 ; i < training_sequences.size(); i++){
         std::string relative_path =  rootpath + training_sequences[i] + "/" +  std::to_string(j) + ".ppm" ;
         cv::Mat descriptors = SIFT_extractor(relative_path); //training sequences stores the sequences path
         if (descriptors.empty()) {
-            std::cerr << "skipping image: " << relative_path << "\n";
+            std::cout << "skipping image: " << relative_path << "\n";
             continue;
         }
         ImageData image_data;
@@ -142,10 +142,20 @@ for(int i = 0 ; i < training_sequences.size(); i++){
         database.push_back(image_data);
     }
 }
-    std::cout <<"total number of proccesses images "<<database.size()<<"\n";
+    // std::cout <<"total number of proccesses images "<<database.size()<<"\n";
+    // //std::cout << database[10].image_id;
+    // for(int i = 0 ; i < database.size(); i++){
+    //     std::cout << database[i].image_id << " \n";
+    // }
 
-    std::vector<Searchresult> leaderboard = exact_search(database[0].histogram, database, 10);
+   std::vector<Searchresult> leaderboard = exact_search(database[10].histogram, database, 420);
+    
     for(int i = 0 ; i < leaderboard.size(); i++){
-        std::cout << i << " " <<leaderboard[i].id << " " << leaderboard[i].distance << "\n" ;
+        //std::cout << i << " " <<leaderboard[i].id << " " << leaderboard[i].distance << "\n" ;
+        //std::string current_path = rootpath + training_sequences[i] + "/" + std::to_string(i) + ".ppm";
+        if( leaderboard[i].image_id.find("/i_bridger/") != std::string::npos ){   //it means if this result is not NOT FOUND (we then find it)
+            std::cout << i << " " <<leaderboard[i].image_id << " " << leaderboard[i].distance << "\n" ;
+        }
     }
+
 }

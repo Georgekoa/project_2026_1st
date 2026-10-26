@@ -20,7 +20,7 @@ std::vector<Searchresult> exact_search(std::vector<float>& histogram, std::vecto
     for(int i = 0 ; i < database.size(); i ++){   //database.size() corresponds to the total number of images we are going to proccess
         Searchresult curr_image;
         curr_image.distance = calculate_distance(histogram, database[i].histogram, 256);
-        curr_image.id = database[i].image_id;
+        curr_image.image_id = database[i].image_id;
         results.push_back(curr_image);
         
     }

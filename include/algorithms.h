@@ -2,7 +2,7 @@
 #define ALGORITHMS_H
 #include "functions.h"
 struct Searchresult {
-    std::string id; //path
+    std::string image_id; //path
     float distance;   //its distance to the image in hand
 };
 

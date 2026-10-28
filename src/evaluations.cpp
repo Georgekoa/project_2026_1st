@@ -15,13 +15,13 @@
 
 float calculate_recall(std::vector<Searchresult>& result, std::vector<ImageData>& relevant_imgs, int mode){   //mode refers to recall@5 or recall@10
    int count = 0 ;
-   std::cout << "Results size: " << result.size() << '\n';
+   
     for(int i = 0 ; i < mode; i++){
-        std::cout << "Checking result: " << result[i].image_id << '\n';
+        
         for(int j = 0 ; j < 5 ; j++){
             if(result[i].image_id == relevant_imgs[j].image_id){     //so for every image in results check if relevant images are there. (j to iterate through every relevant image to find matches)
                 count++;
-                std::cout << "MATCH: " << relevant_imgs[j].image_id << '\n';                
+                             
             }
         }
     }
@@ -84,4 +84,23 @@ float calculate_map10(std::vector<ImageData>& database, std::string algorithm){
 
 
      return 0.0f; //for unsupported algorithm names
+}
+
+float calculate_query_time(std::vector<ImageData>& database, std::string algorithm){
+    double total_time = 0.0;
+    if(algorithm=="exact"){
+        
+        for(int i =0 ; i < database.size();i++){
+            auto start = std::chrono::steady_clock::now();
+
+            std::vector<Searchresult> results = exact_search(database[i], database, 10);
+
+            auto end = std::chrono::steady_clock::now();
+            total_time += std::chrono::duration<double, std::milli>(end - start).count();  //cast it to douvle so we can count in milliseconds.
+        }
+        float average = total_time/database.size();
+        return average;
+    }
+
+    return 0.0f; //again for unsupported names
 }

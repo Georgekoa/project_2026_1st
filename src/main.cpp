@@ -185,12 +185,13 @@ for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, shoul
     // std::cout << "AP@10 for exact search: " << ap10result << "\n";
     // std::cout << "recall@5 for exact search: " <<recall5es << "\n" ;
 
-    float map_es = calculate_map10(database,"exact");
-    std::cout << "Average AP: " << map_es << "\n";
+    // float map_es = calculate_map10(database,"exact");
+    // std::cout << "Average AP: " << map_es << "\n";
 
     
 // CXXFLAGS = -std=c++17 -g -O0 -Wall -Wextra -Iinclude $(shell pkg-config --cflags opencv4)
 
-
+    float query_time_es = calculate_query_time(database,"exact");
+    std::cout << "Average query time for exact search is : " << query_time_es << "ms\n" ;
 
 }

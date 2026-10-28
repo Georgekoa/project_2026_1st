@@ -66,7 +66,7 @@ void update_centers(std::vector<int>& assigned_index, std::vector<std::vector<fl
             sums[assigned_index[i]][j] += master_vector[i][j]; 
         }
 
-    }
+    } 
     for (int i=0 ; i < counts.size() ; i++){  //counts.size is the same as centers.size 
         for(int j = 0 ; j < dimensions ; j ++){
             if (counts[i] == 0) { //if no one uses this center then we leave it as is.
@@ -97,7 +97,7 @@ std::vector<std::vector<float>> kmeans(std::vector<std::vector<float>>& master_v
         }
         for(int k = 0 ; k < master_vector.size(); k++){
             if(old_assignments[k] != assigned_centers[k]){
-                changed_count += 1;
+                changed_count += 1;   
             }
         }
         old_assignments = assigned_centers;         //old will be used in the next iteration.

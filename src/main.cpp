@@ -4,10 +4,11 @@
 #include "functions.h"
 #include "kmeans.h"
 #include "algorithms.h"
+#include <evaluations.h>
 
 int main() {
     //SIFT TESTER + histogram tester
-    std::string path = "data/samples/test.jpg";
+    std::string path = "data/samples/test.jpeg";
     cv::Mat descriptors = SIFT_extractor(path);
     std::cout << "sift rows: " << descriptors.rows << "\n";  // # of keypoints
     std::cout << "sift collumns : " << descriptors.cols << "\n";  // 128 (std number of sift vector)
@@ -27,20 +28,20 @@ int main() {
     std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
     //master vector tester
     std::vector<std::vector<float>> master_vector;
-    // collect_training_descriptors(training_sequences, master_vector);
-    // ΠΡΟΣΩΡΙΝΟ ΓΙΑ ΓΡΗΓΟΡΟ ΤΕΣΤ (παίρνει μόνο 2 ακολουθίες σε 1 δευτερόλεπτο αντί για 70):
-    collect_training_descriptors(std::vector<std::string>(training_sequences.begin(), training_sequences.begin() + 2), master_vector);
+    
+    
+    collect_training_descriptors(training_sequences, master_vector);
 
     // for(int i = 0 ; i < master_vector.size(); i ++){   //run once to check that the data is getting collected
     //     for (int j = 0 ; j < 128 ; j++){
     //         std::cout << master_vector[i][j];
     //     }
     // }
-    // std::cout << "Master vector rows: " << master_vector.size() << '\n'; 
-    // std::cout << "Master vector columns: " << master_vector[0].size() << '\n';
+    std::cout << "Master vector rows: " << master_vector.size() << '\n'; 
+    std::cout << "Master vector columns: " << master_vector[0].size() << '\n';
 
     // //Init centers tester
-    std::vector<std::vector<float>> centers = initialize_centers(master_vector,256);
+    // std::vector<std::vector<float>> centers = initialize_centers(master_vector,256);
 
     // std::cout << "Center count: " << centers.size() << '\n';  //the size of the vector should be 256
     // std::cout << "Dimensions per center: " << centers[0].size() << '\n';   //the size of the first cell on the vector should be 128 
@@ -108,7 +109,7 @@ int main() {
 
 std::filesystem::path vocabulary_30_txt = "./vocabulary_30.txt";
 std::filesystem::path test_txt = "./test.txt" ;   //testing purposes
-save_centers(centers, vocabulary_30_txt);  //file already exists, uncomment to create it
+//save_centers(centers, vocabulary_30_txt);  //file already exists, uncomment to create it
 std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_txt);
 // if (centers_no_kmeans == centers){
 //     std::cout << "loading works \n";
@@ -131,8 +132,8 @@ std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_t
 
 std::vector<ImageData> database;   //it stores histograms and id for all images
 std::string rootpath = "data/hpatches-sequences-release/hpatches-sequences-release/" ;
-// Βάζουμε i < 5 (30 εικόνες) αντί για training_sequences.size() (420 εικόνες) για να τρέξει σε 5 δευτερόλεπτα!
-for(int i = 0 ; i < 5; i++){
+
+for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, should be training_sequences.size()
     for(int j = 1 ; j <=6 ;j++){
         std::string relative_path =  rootpath + training_sequences[i] + "/" +  std::to_string(j) + ".ppm" ;
         cv::Mat descriptors = SIFT_extractor(relative_path); //training sequences stores the sequences path
@@ -162,6 +163,7 @@ for(int i = 0 ; i < 5; i++){
         }
     }
 
+
     std::cout << "\n";
     LSHIndex lsh_index(database, 4, 5, 0.05, 214);
     std::vector<Searchresult> lsh_results = lsh_index.query(database[10].histogram, 10);
@@ -172,5 +174,22 @@ for(int i = 0 ; i < 5; i++){
                   << " - Image: " << lsh_results[i].image_id 
                   << " - Distance: " << lsh_results[i].distance << "\n";
     }
+
+    //float recall5es=calculate_recall(leaderboard,)
+    std::vector<ImageData> relevant_images = relevant_imgs(database,database[10]);
+    for(size_t i = 0 ; i < 5; i++){
+        std::cout << i<< ")" << relevant_images[i].image_id<<"\n"; //relevant_imgs tester
+    }
+    float ap10result = calculate_ap10(leaderboard, relevant_images);  //leaderboard is for exact search variable
+    float recall5es = calculate_recall(leaderboard, relevant_images,5);
+    std::cout << "AP@10 for exact search: " << ap10result << "\n";
+    std::cout << "recall@5 for exact search: " <<recall5es << "\n" ;
+
+
+
+    
+
+
+
 
 }

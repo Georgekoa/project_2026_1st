@@ -8,10 +8,10 @@
 
 int main() {
     //SIFT TESTER + histogram tester
-    std::string path = "data/samples/test.jpeg";
-    cv::Mat descriptors = SIFT_extractor(path);
-    std::cout << "sift rows: " << descriptors.rows << "\n";  // # of keypoints
-    std::cout << "sift collumns : " << descriptors.cols << "\n";  // 128 (std number of sift vector)
+    // std::string path = "data/samples/test.jpeg";
+    // cv::Mat descriptors = SIFT_extractor(path);
+    // std::cout << "sift rows: " << descriptors.rows << "\n";  // # of keypoints
+    // std::cout << "sift collumns : " << descriptors.cols << "\n";  // 128 (std number of sift vector)
     // std::vector<std::vector<float>> master_vector;
     // std::mt19937 gen(214);
     //  std::cout << master_vector.size() << "\n";
@@ -25,20 +25,20 @@ int main() {
 
     std::string split_txt = "split.txt";
     std::vector<std::string>  training_sequences = txt_reader(split_txt);
-    std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
+    // std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
     //master vector tester
-    std::vector<std::vector<float>> master_vector;
+    // std::vector<std::vector<float>> master_vector;
     
     
-    collect_training_descriptors(training_sequences, master_vector);
+    // collect_training_descriptors(training_sequences, master_vector);
 
     // for(int i = 0 ; i < master_vector.size(); i ++){   //run once to check that the data is getting collected
     //     for (int j = 0 ; j < 128 ; j++){
     //         std::cout << master_vector[i][j];
     //     }
     // }
-    std::cout << "Master vector rows: " << master_vector.size() << '\n'; 
-    std::cout << "Master vector columns: " << master_vector[0].size() << '\n';
+    // std::cout << "Master vector rows: " << master_vector.size() << '\n'; 
+    // std::cout << "Master vector columns: " << master_vector[0].size() << '\n';
 
     // //Init centers tester
     // std::vector<std::vector<float>> centers = initialize_centers(master_vector,256);
@@ -108,7 +108,7 @@ int main() {
 //         std::cout<< all_valid;
 
 std::filesystem::path vocabulary_30_txt = "./vocabulary_30.txt";
-std::filesystem::path test_txt = "./test.txt" ;   //testing purposes
+//std::filesystem::path test_txt = "./test.txt" ;   //testing purposes
 //save_centers(centers, vocabulary_30_txt);  //file already exists, uncomment to create it
 std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_txt);
 // if (centers_no_kmeans == centers){
@@ -153,15 +153,15 @@ for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, shoul
     //     std::cout << database[i].image_id << " \n";
     // }
 
-   std::vector<Searchresult> leaderboard = exact_search(database[10].histogram, database, database.size());
+   //std::vector<Searchresult> leaderboard = exact_search(database[10], database, database.size());  <- this produces a segmantation fault because after changes the query image is excluded, meaning  database.size() is out of bounds for exact search by 1
     
-    for(size_t i = 0 ; i < leaderboard.size(); i++){
-        //std::cout << i << " " <<leaderboard[i].id << " " << leaderboard[i].distance << "\n" ;
-        //std::string current_path = rootpath + training_sequences[i] + "/" + std::to_string(i) + ".ppm";
-        if( leaderboard[i].image_id.find("/i_bridger/") != std::string::npos ){   //it means if this result is not NOT FOUND (we then find it)
-            std::cout << i << " " <<leaderboard[i].image_id << " " << leaderboard[i].distance << "\n" ;
-        }
-    }
+    // for(size_t i = 0 ; i < leaderboard.size(); i++){
+    //     //std::cout << i << " " <<leaderboard[i].id << " " << leaderboard[i].distance << "\n" ;
+    //     //std::string current_path = rootpath + training_sequences[i] + "/" + std::to_string(i) + ".ppm";
+    //     if( leaderboard[i].image_id.find("/i_bridger/") != std::string::npos ){   //it means if this result is not NOT FOUND (we then find it)
+    //         std::cout << i << " " <<leaderboard[i].image_id << " " << leaderboard[i].distance << "\n" ;
+    //     }
+    // }
 
 
     std::cout << "\n";
@@ -176,19 +176,20 @@ for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, shoul
     }
 
     //float recall5es=calculate_recall(leaderboard,)
-    std::vector<ImageData> relevant_images = relevant_imgs(database,database[10]);
-    for(size_t i = 0 ; i < 5; i++){
-        std::cout << i<< ")" << relevant_images[i].image_id<<"\n"; //relevant_imgs tester
-    }
-    float ap10result = calculate_ap10(leaderboard, relevant_images);  //leaderboard is for exact search variable
-    float recall5es = calculate_recall(leaderboard, relevant_images,5);
-    std::cout << "AP@10 for exact search: " << ap10result << "\n";
-    std::cout << "recall@5 for exact search: " <<recall5es << "\n" ;
+    // std::vector<ImageData> relevant_images = relevant_imgs(database,database[10]);
+    // for(size_t i = 0 ; i < 5; i++){
+    //     std::cout << i<< ")" << relevant_images[i].image_id<<"\n"; //relevant_imgs tester
+    // }
+    // float ap10result = calculate_ap10(leaderboard, relevant_images);  //leaderboard is for exact search variable
+    // float recall5es = calculate_recall(leaderboard, relevant_images,5);
+    // std::cout << "AP@10 for exact search: " << ap10result << "\n";
+    // std::cout << "recall@5 for exact search: " <<recall5es << "\n" ;
 
-
+    float map_es = calculate_map10(database,"exact");
+    std::cout << "Average AP: " << map_es << "\n";
 
     
-
+// CXXFLAGS = -std=c++17 -g -O0 -Wall -Wextra -Iinclude $(shell pkg-config --cflags opencv4)
 
 
 

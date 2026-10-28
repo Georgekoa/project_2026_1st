@@ -21,7 +21,7 @@ float calculate_recall(std::vector<Searchresult>& result, std::vector<ImageData>
         for(int j = 0 ; j < 5 ; j++){
             if(result[i].image_id == relevant_imgs[j].image_id){     //so for every image in results check if relevant images are there. (j to iterate through every relevant image to find matches)
                 count++;
-                std::cout << "MATCH: " << relevant_imgs[j].image_id << '\n';
+                std::cout << "MATCH: " << relevant_imgs[j].image_id << '\n';                
             }
         }
     }
@@ -69,3 +69,19 @@ std::vector<ImageData> relevant_imgs(std::vector<ImageData>& database, ImageData
 }
 
 //leaderboard[i].image_id.find("/i_bridger/") != std::string::npos
+
+float calculate_map10(std::vector<ImageData>& database, std::string algorithm){
+    if(algorithm == "exact"){
+        float map = 0.0f;
+        for (int i = 0 ; i < database.size();i++){
+            std::vector<ImageData> current_relevant_imgs = relevant_imgs(database, database[i]);
+            std::vector<Searchresult> current_result = exact_search(database[i], database, 10);
+            float current_ap10 = calculate_ap10(current_result, current_relevant_imgs);
+            map += current_ap10;
+        }
+        return map / database.size();
+    }
+
+
+     return 0.0f; //for unsupported algorithm names
+}

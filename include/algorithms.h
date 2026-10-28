@@ -7,7 +7,7 @@ struct Searchresult {
 };
 
 bool compare_distance(Searchresult& a, Searchresult& b);
-std::vector<Searchresult> exact_search(std::vector<float>& histogram, std::vector<ImageData>& database, int total_results);
+std::vector<Searchresult> exact_search(ImageData& query, std::vector<ImageData>& database, int total_results);
 
 class LSHIndex {
 private:

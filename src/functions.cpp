@@ -8,6 +8,7 @@
 #include <random>
 #include <kmeans.h>
 #include <functions.h>
+#include <chrono>  //for query time
 
     cv::Mat SIFT_extractor(const std::string& path){  //const & as to not create another copy
     cv::Mat image = cv::imread(path, cv::IMREAD_GRAYSCALE);  //we dont care about color

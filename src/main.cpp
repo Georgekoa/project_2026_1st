@@ -6,6 +6,7 @@
 #include "algorithms.h"
 #include <evaluations.h>
 
+
 int main() {
     //SIFT TESTER + histogram tester
     // std::string path = "data/samples/test.jpeg";
@@ -163,17 +164,18 @@ for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, shoul
     //     }
     // }
 
+    // LSH TESTING
 
-    std::cout << "\n";
-    LSHIndex lsh_index(database, 4, 5, 0.05, 214);
-    std::vector<Searchresult> lsh_results = lsh_index.query(database[10].histogram, 10);
+//     std::cout << "\n";
+//     LSHIndex lsh_index(database, 4, 5, 0.05, 214);
+//     std::vector<Searchresult> lsh_results = lsh_index.query(database[10].histogram, 10);
 
-   std::cout << "\n LSH results: " << database[10].image_id << " ---\n";
-    for (size_t i = 0; i < lsh_results.size(); i++) {
-        std::cout << "Rank-" << (i + 1) 
-                  << " - Image: " << lsh_results[i].image_id 
-                  << " - Distance: " << lsh_results[i].distance << "\n";
-    }
+//    std::cout << "\n LSH results: " << database[10].image_id << " ---\n";
+//     for (size_t i = 0; i < lsh_results.size(); i++) {
+//         std::cout << "Rank-" << (i + 1) 
+//                   << " - Image: " << lsh_results[i].image_id 
+//                   << " - Distance: " << lsh_results[i].distance << "\n";
+//     }
 
     //float recall5es=calculate_recall(leaderboard,)
     // std::vector<ImageData> relevant_images = relevant_imgs(database,database[10]);
@@ -194,4 +196,43 @@ for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, shoul
     float query_time_es = calculate_query_time(database,"exact");
     std::cout << "Average query time for exact search is : " << query_time_es << "ms\n" ;
 
+
+    //IVFFlat tester
+
+
+        //Index creation test
+int n = database.size();  //420 for testing
+int centers_count = static_cast<int>(ceil(sqrt(n)));  //casting as ceiling is a double
+
+IVFFlatIndex index = build_ivff_index(database, centers_count);
+
+std::cout << "IVFFlat Index Test\n";
+
+std::cout << "database size: " << n << '\n' << "number of centers: " << index.centers.size() << '\n' << "number of inverted lists: " << index.inverted_lists.size() << '\n';
+
+int total_assigned = 0;
+
+for (int i = 0; i < index.inverted_lists.size(); i++) {
+    total_assigned += index.inverted_lists[i].size();
+    std::cout << "Center " << i  << " contains " << index.inverted_lists[i].size() << " images\n";
 }
+std::cout << "total assigned images: " << total_assigned << '\n';
+
+//actual search tester
+
+std::vector<float> query = database[0].histogram;
+std::string query_image_id = database[0].image_id;
+std::cout<< "query is :" << database[0].image_id << " \n";
+
+std::vector<Searchresult> ivf_results = ivfflat_search(query, query_image_id, database, index, 5, 10);
+
+std::cout << "IVFFlat Search Test\n";
+
+for (int i = 0; i < ivf_results.size(); i++){
+    std::cout << "rank " << i + 1 << ": " << ivf_results[i].image_id << " distance: " << ivf_results[i].distance << '\n';  //test for the first image of the database
+}
+
+std::cout << "results returned: " << ivf_results.size() << '\n';  //no point in actually returns the results. 
+}
+
+

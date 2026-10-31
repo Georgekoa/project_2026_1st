@@ -35,4 +35,15 @@ public:
     std::vector<Searchresult> query(std::vector<float>& query_histogram, int total_results = 10);
 };
 
+
+
+
+struct IVFFlatIndex{     //actual IVFFlat database 
+    std::vector<std::vector<float>> centers;      // kmeans centers (256 floats this time instead of the 128 of prev kmeans - 256 floats per histogram)
+    std::vector<std::vector<int>> inverted_lists;  //inverted_lists.size() is the # of centers. and each cell has another vector of ints that stores the indexes of the actual histogram that belong to current center
+};
+std::vector<std::vector<float>> create_histogram_database(std::vector<ImageData>& database);
+IVFFlatIndex build_ivff_index(std::vector<ImageData>& database, int centers_count);
+std::vector<int> find_nearest_centers(std::vector<float>& query, IVFFlatIndex& index, int nprobe);
+std::vector<Searchresult> ivfflat_search(std::vector<float>& query, std::string& query_image_id, std::vector<ImageData>& database, IVFFlatIndex& index, int nprobe, int total_results);
 #endif

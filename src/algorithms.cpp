@@ -140,3 +140,100 @@ std::vector<Searchresult> LSHIndex::query(std::vector<float>& query_histogram, i
 
     return leaderboard;
 }
+
+std::vector<std::vector<float>> create_histogram_database(std::vector<ImageData>& database){
+    std::vector<std::vector<float>> histogram_database;
+    
+    for(int i = 0 ; i < database.size();i++){
+        histogram_database.push_back(database[i].histogram);    //ImageData already has histograms, so we copy them inside another vector to help our new kmeans
+    }
+    return histogram_database;
+}
+
+IVFFlatIndex build_ivff_index(std::vector<ImageData>& database , int centers_count) {
+    
+    IVFFlatIndex index;
+
+    std::vector<std::vector<float>> histogram_database = create_histogram_database(database);
+    index.centers = kmeans(histogram_database, 256, 5, centers_count);
+    index.inverted_lists.resize(centers_count);  //create an empty vector to accomodate every center
+
+    std::vector<int> assignments = assign_centers(histogram_database, index.centers); //assign every histogram to its nearest center..... again for clarity. assign centers returns a vector with size # of histograms
+
+    for (int i = 0; i < assignments.size(); i++) {   //distribute database images into their lists 
+        int center_index = assignments[i];
+        index.inverted_lists[center_index].push_back(i);   //we just create a vector with integers (their index)
+    }
+
+    return index;
+}
+
+std::vector<int> find_nearest_centers(std::vector<float>& query, IVFFlatIndex& index, int nprobe) {  //query = image histogram, probe is the centers we want to return.   //function to return the nprobes nearest centers of our query image
+    std::vector<int> nearest_centers;
+    std::vector<bool> selected(index.centers.size(), false);  //track which centers are used
+
+    if (nprobe > index.centers.size()) {
+        nprobe = index.centers.size();   //in case the centers are less that our selected nprobe, make nprobe the maximum.
+    }
+
+    for (int i = 0 ; i < nprobe ; i++) {   \
+
+        float min_distance = std::numeric_limits<float>::max();
+        int nearest_center = -1;
+
+        
+        for (int j = 0; j < index.centers.size(); j++) {   //find the closest center that has not already been selected
+
+            if (selected[j] == false) {
+
+                float distance = calculate_distance(query, index.centers[j], 256);
+
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    nearest_center = j;
+                }
+            }
+        }
+        
+        if (nearest_center != -1) {   //save the center index and mark it as selected
+            nearest_centers.push_back(nearest_center);
+            selected[nearest_center] = true;
+        }
+    }
+    return nearest_centers;
+}
+
+
+std::vector<Searchresult> ivfflat_search(std::vector<float>& query, std::string& query_image_id ,std::vector<ImageData>& database, IVFFlatIndex& index, int nprobe, int total_results){
+    std::vector<Searchresult> results;
+    
+    std::vector<int> nearest_centers = find_nearest_centers(query, index, nprobe);  //find the nprobes nearest centers
+    for (int i = 0; i < nearest_centers.size(); i++) {    //search the inverted lists of those centers
+
+        int center_index = nearest_centers[i];        
+        std::vector<int> candidates = index.inverted_lists[center_index];   //get the database indices belonging to this center(index.inverted_lists[center_index] refers to the assignment vector, so we have which images belong to our current center)
+
+        for (int j = 0; j < candidates.size(); j++) {   //calculate the distance to every candidate
+
+            int image_index = candidates[j];
+            
+        if (database[image_index].image_id == query_image_id) {   //exclude the query image from the results
+            continue;
+        }
+            Searchresult result;
+            result.image_id = database[image_index].image_id;
+            result.distance = calculate_distance(query, database[image_index].histogram,256 );
+            results.push_back(result);
+        }
+    }
+
+    
+    std::sort(results.begin(), results.end(), compare_distance);  //sort results by distance, smallest (better) first
+
+    
+    if (results.size() > total_results) {  //keep only the requested number of results
+        results.resize(total_results);
+    }
+
+    return results;
+}

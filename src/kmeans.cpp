@@ -47,7 +47,7 @@ int find_nearest_center(std::vector<float> descriptor, std::vector<std::vector<f
     return min_index; 
 }
 
-std::vector<int> assign_centers(std::vector<std::vector<float>> master_vector, std::vector<std::vector<float>> centers){
+std::vector<int> assign_centers(std::vector<std::vector<float>>& master_vector, std::vector<std::vector<float>> centers){
     std::vector<int> assigned_centers;
     for (int i = 0 ; i < master_vector.size(); i++){
        int current_center_index = find_nearest_center(master_vector[i],centers);

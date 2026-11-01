@@ -196,8 +196,8 @@ for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, shoul
     
 // CXXFLAGS = -std=c++17 -g -O0 -Wall -Wextra -Iinclude $(shell pkg-config --cflags opencv4)
 
-    float query_time_es = calculate_query_time(database,"exact");
-    std::cout << "Average query time for exact search is : " << query_time_es << "ms\n" ;
+    // float query_time_es = calculate_query_time(database,"exact");
+    // std::cout << "Average query time for exact search is : " << query_time_es << "ms\n" ;
 
 
     //IVFFlat tester

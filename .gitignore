@@ -27,3 +27,6 @@ core.*
 #keep vocab out of git, code remains though.
 /vocabulary*.txt
 /test.txt
+
+submission_snapshot/
+project_snapshot.zip

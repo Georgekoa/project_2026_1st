@@ -253,7 +253,58 @@ int main(int argc, char* argv[]) {
     }else if (config.algorithm == "ivfpq"){
         pq_index = build_ivfpq_index(database, centers_count, config.M, config.nbits);
 }
-    return 0;
+
+
+    EvaluationResults results = evaluate_algorithm( queries, database, config.algorithm, lsh_index, ivf_index, pq_index ,hypercube_index ,config.nprobe,config.M , config.probes, generator);
+   
+    std::cout << "\nEvaluation results\n";   //printing evaluation results
+    std::cout << "Algorithm: " << config.algorithm << "\n";
+    std::cout << "Recall@5: " << results.mean_recall5 << "\n";
+    std::cout << "Recall@10: " << results.mean_recall10 << "\n";
+    std::cout << "mAP@10: " << results.map10 << "\n";
+    std::cout << "Average query time: " << results.average_query_time << " ms\n";
+    std::cout << "Queries with less than 10 results: " << results.queries_with_less_than_10 << "\n";
+
+
+
+    std::ofstream output_file(config.output_path);     //write results to output file
+
+    if (!output_file.is_open()) {
+        std::cerr << "Could not open output file\n";
+        return 1;
+    }
+
+    output_file << config.algorithm << "\n";
+
+    for (int i = 0; i < results.query_results.size(); i++) {
+
+        std::string query_id = results.query_results[i].query_id;
+
+    // keep only the sequence name
+        query_id = query_id.substr(0, query_id.find('/'));
+
+        output_file << "Query: " << query_id << "\n";
+
+    for (int j = 0; j < results.query_results[i].results.size(); j++) {
+
+        output_file << "Rank-" << j + 1 << ": "
+                    << results.query_results[i].results[j].image_id << "\n";
+    }
+
+    output_file << "Recall@5: " << results.query_results[i].recall5 << "\n";
+    output_file << "Recall@10: " << results.query_results[i].recall10 << "\n";
+    output_file << "AP@10: " << results.query_results[i].ap10 << "\n\n";
 }
+
+    output_file << "Mean Recall@5: " << results.mean_recall5 << "\n";
+    output_file << "Mean Recall@10: " << results.mean_recall10 << "\n";
+    output_file << "mAP@10: " << results.map10 << "\n";
+    output_file << "Average query time: " << results.average_query_time << "\n";
+
+    output_file.close();
+
+    std::cout << "Results saved to: " << config.output_path << "\n";
+        return 0;
+    }
 
 

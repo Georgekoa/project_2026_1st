@@ -4,303 +4,256 @@
 #include "functions.h"
 #include "kmeans.h"
 #include "algorithms.h"
-#include <evaluations.h>
+#include "evaluations.h"
 
+struct ProgramConfiguration {    //for argument parsing   //we create the default options in case someone doesnt pass an argument on the command line
+    std::string hp_path="data/hpatches-sequences-release/hpatches-sequences-release";
+    std::string mir_path="data/mirflickr25k/mirflickr";
+    std::string vocabulary_path = "vocabulary_30.txt";
+    std::string split_path="split.txt";
+    std::string output_path="output.txt";
 
-int main() {
+    std::string dataset_set="validation";
+    std::string algorithm;
+
+    int vocab = 256;
+    int S = 500;
+    int D = 1000;
     int seed = 214;
-    std::mt19937 generator(seed); //save the generator for all uses
+
+    int k = 4;  //lsh
+    int L = 5;
+
+    int kproj = 10;    //hypercube
+
+    double w = 0.05;   //shared 
+    int M = 0;
+    int probes = 10;
+
+    int kclusters = 0;  //ivfflat / ivfpq
+    int nprobe = 5;
+    int nbits = 8;
+};
+
+ProgramConfiguration parse_arguments(int argc, char* argv[]) {   //PARSER
+
+    ProgramConfiguration config;
+
+    for (int i = 1; i < argc; i++) {   //for every argument
+
+        std::string argument = argv[i]; //parse the i-th argument
+
+        if (argument == "-hp") { 
+            config.hp_path = argv[++i];
+        }
+        else if (argument == "-mir") {
+            config.mir_path = argv[++i];
+        }
+        else if (argument == "-split") {
+            config.split_path = argv[++i];
+        }
+        else if (argument == "-vocab") {
+            config.vocab = std::stoi(argv[++i]);
+        }
+        else if (argument == "-S") {
+            config.S = std::stoi(argv[++i]);
+        }
+        else if (argument == "-D") {
+            config.D = std::stoi(argv[++i]);
+        }
+        else if (argument == "-set") {
+            config.dataset_set = argv[++i];
+        }
+        else if (argument == "-o") {
+            config.output_path = argv[++i];
+        }
+        else if (argument == "-seed") {
+            config.seed = std::stoi(argv[++i]);
+        }
+        else if (argument == "-exact") {
+            config.algorithm = "exact";
+        }
+        else if (argument == "-lsh") {
+            config.algorithm = "lsh";
+        }
+        else if (argument == "-hypercube") {
+            config.algorithm = "hypercube";
+        }
+        else if (argument == "-ivfflat") {
+            config.algorithm = "ivfflat";
+        }
+        else if (argument == "-ivfpq") {
+            config.algorithm = "ivfpq";
+        }
+        else if (argument == "-k") {
+            config.k = std::stoi(argv[++i]);
+        }
+        else if (argument == "-L") {
+            config.L = std::stoi(argv[++i]);
+        }
+        else if (argument == "-kproj") {
+            config.kproj = std::stoi(argv[++i]);
+        }
+        else if (argument == "-w") {
+            config.w = std::stod(argv[++i]);
+        }
+        else if (argument == "-M") {
+            config.M = std::stoi(argv[++i]);
+        }
+        else if (argument == "-probes") {
+            config.probes = std::stoi(argv[++i]);
+        }
+        else if (argument == "-kclusters") {
+            config.kclusters = std::stoi(argv[++i]);
+        }
+        else if (argument == "-nprobe") {
+            config.nprobe = std::stoi(argv[++i]);
+        }
+        else if (argument == "-nbits") {
+            config.nbits = std::stoi(argv[++i]);
+        }
+    }
+
+    return config;
+}
+
+
+int main(int argc, char* argv[]) {
     
-    //SIFT TESTER + histogram tester
-    // std::string path = "data/samples/test.jpeg";
-    // cv::Mat descriptors = SIFT_extractor(path);
-    // std::cout << "sift rows: " << descriptors.rows << "\n";  // # of keypoints
-    // std::cout << "sift collumns : " << descriptors.cols << "\n";  // 128 (std number of sift vector)
+    ProgramConfiguration config = parse_arguments(argc, argv);   //parse command line arguments
+    std::mt19937 generator(config.seed);   //create the random seed we are going to create throuout main. (214)
+    DatasetSplit dataset_split = read_dataset_split(config.split_path);  
+    std::vector<std::string> evaluation_sequences;
+
+    if (config.dataset_set == "validation") {
+        evaluation_sequences = dataset_split.validation;   //the validation part is a vector of strings so we put it on evaluation_sequences
+    }   
+    else {
+        evaluation_sequences = dataset_split.test;
+    }
+
+    std::cout << "training sequences: " << dataset_split.training.size() << "\n";
+    std::cout << "validation sequences: " << dataset_split.validation.size() << "\n";
+    std::cout << "test sequences: " << dataset_split.test.size() << "\n";
+
+    // std::mt19937 generator(config.seed);  //instead of hardcoding 214. (though its quite the same)      //we dont need this part as we are using the prerecoreder vocabulary_30.txt file 
     // std::vector<std::vector<float>> master_vector;
-    // std::mt19937 gen(214);
-    //  std::cout << master_vector.size() << "\n";
-    // vector_combine(descriptors,master_vector,gen);
-    // std::cout << master_vector.size() << "\n";
-    
+    // collect_training_descriptors(dataset_split.training,master_vector, config.S);
+    // std::cout << "total SIFT descriptors: " << master_vector.size() << "\n";
 
-
-
-    // SPLIT.TXT tester
-
-    std::string split_txt = "split.txt";
-    std::vector<std::string>  training_sequences = txt_reader(split_txt);
-    // std::cout << "vector size: " << training_sequences.size() << "\n" ; //if the size is 70 then the test is completed. no point on iterating to see every result. (it is 70 after the test)
-    //master vector tester
-    // std::vector<std::vector<float>> master_vector;
-    
-    
-    // collect_training_descriptors(training_sequences, master_vector);
-
-    // for(int i = 0 ; i < master_vector.size(); i ++){   //run once to check that the data is getting collected
-    //     for (int j = 0 ; j < 128 ; j++){
-    //         std::cout << master_vector[i][j];
-    //     }
+    // if (!master_vector.empty()) {  //safe handling master_vector[0]
+    //     std::cout << "Descriptor dimensions: " << master_vector[0].size() << "\n";
     // }
-    // std::cout << "Master vector rows: " << master_vector.size() << '\n'; 
-    // std::cout << "Master vector columns: " << master_vector[0].size() << '\n';
 
-    // //Init centers tester
-    // std::vector<std::vector<float>> centers = initialize_centers(master_vector,256);
+    std::filesystem::path vocabulary_file = config.vocabulary_path;   //this basically converts the string to std::filesystem::path format
+    std::vector<std::vector<float>> centers = load_centers(vocabulary_file);
 
-    // std::cout << "Center count: " << centers.size() << '\n';  //the size of the vector should be 256
-    // std::cout << "Dimensions per center: " << centers[0].size() << '\n';   //the size of the first cell on the vector should be 128 
+    std::cout << "vocabulary centers: " << centers.size() << "\n";
+    std::cout << "center dimensions: " << centers[0].size() << "\n";
+
+    std::vector<ImageData> database;    //create the databases
+    std::vector<QueryData> queries;
+    for (int i = 0; i < evaluation_sequences.size(); i++) {   //for each one of our testing images
+
+        std::string sequence = evaluation_sequences[i];
+        std::string query_path = config.hp_path + "/" + sequence + "/1.ppm";   //create the query using image 1
+
+        cv::Mat query_descriptors = SIFT_extractor(query_path);
+
+        if (query_descriptors.empty()) {
+            std::cerr << "Error: No descriptors found in " << query_path << "\n";
+            return 1;
+        }
+
+        QueryData query_data;
+
+        query_data.query.image_id = sequence + "/1.ppm";
+        query_data.query.histogram = create_histogram(centers, query_descriptors);
+
+        for (int j = 2; j <= 6; j++) {  //add images 2-6 to the database 
+
+            std::string image_path = config.hp_path + "/" + sequence + "/" + std::to_string(j) + ".ppm";
+
+            cv::Mat descriptors = SIFT_extractor(image_path);
+
+            if (descriptors.empty()) {
+                std::cerr << "error: no descriptors found in " << image_path << "\n";
+                return 1;
+            }
+            ImageData image_data;
+
+            image_data.image_id = sequence + "/" + std::to_string(j) + ".ppm";
+            image_data.histogram = create_histogram(centers, descriptors);
+
+            database.push_back(image_data);
+            query_data.relevant_ids.push_back(image_data.image_id);//these five images are relevant to the current query
+        }
+
+        queries.push_back(query_data);
+    }   
 
 
-//     // distance tester
-//     std::vector<float> point_a = {1, 2, 3};  //test vectors
-//     std::vector<float> point_b = {4, 6, 3};
+    std::cout << "Evaluation sequences: " << evaluation_sequences.size() << "\n";
+    std::cout << "Queries: " << queries.size() << "\n";
+    std::cout << "HPatches database images: " << database.size() << "\n";
 
-//     //std::cout << calculate_distance(point_a, point_b , 3) << '\n';
+    if (!queries.empty()) {
+        std::cout << "Relevant images for first query: " << queries[0].relevant_ids.size() << "\n";
+    }
 
-//     //best centers tester
-//     std::vector<std::vector<float>> points {  //predictable decriptors for testing purposes
-//         {1,1,0},
-//         {2,1,0},
-//         {8,8,0},
-//         {9,8,0}
-//     };
-//     // std::vector<std::vector<float>> centers = initialize_centers(points,2);   //initialze just 2 centers
-//     // std::vector<int> assigned_index ; //assume assignments for testing
-//     // for (int i = 0 ; i < points.size(); i ++){    //in the outer for loop we find the nearest cenbter for each point (descriptor) then we print it
-//     //     int current_center_index = find_nearest_center(points[i], centers); //it returns the index of the nearest center
-//     //     std::cout << current_center_index << "\n";
-//     //     assigned_index.push_back(current_center_index); 
-//     // }
+    if (!database.empty()) {
+        std::cout << "Histogram dimensions: " << database[0].histogram.size() << "\n";
+    }    
+
+    int hpatches_images = database.size();  //keep track of our hpatches images used.                    
+    int mirflickr_added = 0;                //keep track of our mirflickr images    
     
-//     //update centers tester
-//     // for(int i = 0 ; i < centers.size(); i++){        //CENTERS BEFORE
-//     //     for(int j = 0; j < 3 ; j++){
-//     //         std::cout << centers[i][j]<<" ";
-//     //     }
-//     //     std::cout << "\n";
-//     // }
-// KMEANS TESTER
-//     //update_centers(assigned_index,points,centers,3);
-//     std::vector<std::vector<float>> centers = kmeans(points, 3, 100, 2);
-//     for(int i = 0 ; i < centers.size(); i++){        //CENTERS AFTER
-//         for(int j = 0; j < 3 ; j++){
-//             std::cout << centers[i][j]<<" ";
-//         }
-//         std::cout << "\n";
-//     }
+    for (int i = 1; i <= 25000 && mirflickr_added < config.D; i++) {   //for 25k images or for lower if requested.
 
-    
-//     return 0;
+        std::string image_path = config.mir_path + "/im" + std::to_string(i) + ".jpg"; 
 
+        cv::Mat descriptors = SIFT_extractor(image_path);
 
-
-//DATA SET training
-// int dimensions = 128;
-// std::vector<std::vector<float>> centers = kmeans(master_vector, dimensions, 30, 256);
-// bool all_valid = true;
-// std::cout << centers.size() << "\n";
-// std::cout <<centers[0].size() << "\n";
-
-// for(int i = 0 ; i < centers.size(); i++){
-//     for(int j = 0 ; j < dimensions; j++){
-//         if(std::isfinite(centers[i][j])!=true){
-//             all_valid = false;
-//             break;
-//         }
-//     }
-// }
-//         std::cout<< all_valid;
-
-std::filesystem::path vocabulary_30_txt = "./vocabulary_30.txt";
-//std::filesystem::path test_txt = "./test.txt" ;   //testing purposes
-//save_centers(centers, vocabulary_30_txt);  //file already exists, uncomment to create it
-std::vector<std::vector<float>> centers_no_kmeans = load_centers(vocabulary_30_txt);
-// if (centers_no_kmeans == centers){
-//     std::cout << "loading works \n";
-// }
-// else{
-//     std::cout << "loading doesnt work \n" ;
-// }
-//save_centers(centers_no_kmeans,test_txt);   //only for testing to see that the two files are identical
-// std::vector<float> histogram = create_histogram(centers_no_kmeans, descriptors);    //test images descriptors 
-// std::cout << "histogram size: " << histogram.size() << "\n";
-// float sum=0;
-// for(int i = 0 ; i < histogram.size(); i++){
-//     if(histogram[i]>1 || histogram[i] < 0){
-//         std::cerr << "found out-of-bounds value\n";
-//     }
-//     //std::cout << histogram[i] << " ";
-//     sum+= histogram[i];
-//     }
-//     std::cout << "total sum is: " << sum << "\n" ; 
-
-std::vector<ImageData> database;   //it stores histograms and id for all images
-std::string rootpath = "data/hpatches-sequences-release/hpatches-sequences-release/" ;
-
-for(int i = 0 ; i < training_sequences.size(); i++){   //for speedy tests, should be training_sequences.size()
-    for(int j = 1 ; j <=6 ;j++){
-        std::string relative_path =  rootpath + training_sequences[i] + "/" +  std::to_string(j) + ".ppm" ;
-        cv::Mat descriptors = SIFT_extractor(relative_path); //training sequences stores the sequences path
         if (descriptors.empty()) {
-            std::cout << "skipping image: " << relative_path << "\n";
             continue;
         }
+
         ImageData image_data;
-        image_data.image_id = relative_path;  //store it in the struct object
-        image_data.histogram = create_histogram(centers_no_kmeans, descriptors);
+
+        image_data.image_id = "im" + std::to_string(i) + ".jpg";   //creating the i-th image id (its path)
+        image_data.histogram = create_histogram(centers, descriptors);
+
         database.push_back(image_data);
+
+        mirflickr_added++;
     }
+
+    std::vector<ImageData> empty_database;
+    LSHIndex lsh_index(empty_database);
+    IVFFlatIndex ivf_index;
+    IVFPQIndex pq_index;
+    HypercubeIndex hypercube_index;
+
+    int centers_count = config.kclusters;   //calucalate the ivf centers
+    if (centers_count == 0) {
+        centers_count = ceil(sqrt(database.size()));
+    }
+    std::cout << "evaluation sequences: " << evaluation_sequences.size() << "\n";    //keep track of results
+    std::cout << "queries: " << queries.size() << "\n";  //23
+    std::cout << "hpatches database images: " << hpatches_images << "\n";  //should be 115 nontheless   (23 seqs*5 images each)
+    std::cout << "MIRFlickr images added: " << mirflickr_added << "\n";  //D
+    std::cout << "Total database images: " << database.size() << "\n";  //115 + D
+    if (config.algorithm == "lsh"){
+        lsh_index = LSHIndex(database, config.k, config.L, config.w, config.seed);          //build the indexes based on the requested algoritmh 
+    }else if (config.algorithm == "hypercube"){
+        hypercube_index = build_hypercube_index(database, config.kproj, config.w, generator);
+    }else if (config.algorithm == "ivfflat"){
+        ivf_index = build_ivff_index(database, centers_count);
+
+    }else if (config.algorithm == "ivfpq"){
+        pq_index = build_ivfpq_index(database, centers_count, config.M, config.nbits);
 }
-    // std::cout <<"total number of proccesses images "<<database.size()<<"\n";
-    // //std::cout << database[10].image_id;
-    // for(int i = 0 ; i < database.size(); i++){
-    //     std::cout << database[i].image_id << " \n";
-    // }
-
-   //std::vector<Searchresult> leaderboard = exact_search(database[10], database, database.size());  <- this produces a segmantation fault because after changes the query image is excluded, meaning  database.size() is out of bounds for exact search by 1
-    
-    // for(size_t i = 0 ; i < leaderboard.size(); i++){
-    //     //std::cout << i << " " <<leaderboard[i].id << " " << leaderboard[i].distance << "\n" ;
-    //     //std::string current_path = rootpath + training_sequences[i] + "/" + std::to_string(i) + ".ppm";
-    //     if( leaderboard[i].image_id.find("/i_bridger/") != std::string::npos ){   //it means if this result is not NOT FOUND (we then find it)
-    //         std::cout << i << " " <<leaderboard[i].image_id << " " << leaderboard[i].distance << "\n" ;
-    //     }
-    // }
-
-    // LSH TESTING
-
-//     std::cout << "\n";
-//     LSHIndex lsh_index(database, 4, 5, 0.05, 214);
-//     std::vector<Searchresult> lsh_results = lsh_index.query(database[10].histogram, 10);
-
-//    std::cout << "\n LSH results: " << database[10].image_id << " ---\n";
-//     for (size_t i = 0; i < lsh_results.size(); i++) {
-//         std::cout << "Rank-" << (i + 1) 
-//                   << " - Image: " << lsh_results[i].image_id 
-//                   << " - Distance: " << lsh_results[i].distance << "\n";
-//     }
-
-    //float recall5es=calculate_recall(leaderboard,)
-    // std::vector<ImageData> relevant_images = relevant_imgs(database,database[10]);
-    // for(size_t i = 0 ; i < 5; i++){
-    //     std::cout << i<< ")" << relevant_images[i].image_id<<"\n"; //relevant_imgs tester
-    // }
-    // float ap10result = calculate_ap10(leaderboard, relevant_images);  //leaderboard is for exact search variable
-    // float recall5es = calculate_recall(leaderboard, relevant_images,5);
-    // std::cout << "AP@10 for exact search: " << ap10result << "\n";
-    // std::cout << "recall@5 for exact search: " <<recall5es << "\n" ;
-
-    // float map_es = calculate_map10(database,"exact");
-    // std::cout << "Average AP: " << map_es << "\n";
-
-    
-// CXXFLAGS = -std=c++17 -g -O0 -Wall -Wextra -Iinclude $(shell pkg-config --cflags opencv4)
-
-    // float query_time_es = calculate_query_time(database,"exact");
-    // std::cout << "Average query time for exact search is : " << query_time_es << "ms\n" ;
-
-
-    //IVFFlat tester
-
-
-        //Index creation test
-int n = database.size();  //420 for testing
-int centers_count = static_cast<int>(ceil(sqrt(n)));  //casting as ceiling is a double
-
-IVFFlatIndex index = build_ivff_index(database, centers_count);
-
-std::cout << "IVFFlat Index Test\n";
-
-std::cout << "database size: " << n << '\n' << "number of centers: " << index.centers.size() << '\n' << "number of inverted lists: " << index.inverted_lists.size() << '\n';
-
-int total_assigned = 0;
-
-for (int i = 0; i < index.inverted_lists.size(); i++) {
-    total_assigned += index.inverted_lists[i].size();
-    std::cout << "Center " << i  << " contains " << index.inverted_lists[i].size() << " images\n";
-}
-std::cout << "total assigned images: " << total_assigned << '\n';
-
-//actual search tester
-
-std::vector<float> query = database[0].histogram;
-std::string query_image_id = database[0].image_id;
-std::cout<< "query is :" << database[0].image_id << " \n";
-
-std::vector<Searchresult> ivf_results = ivfflat_search(query, query_image_id, database, index, 5, 10);
-
-std::cout << "IVFFlat Search Test\n";
-
-for (int i = 0; i < ivf_results.size(); i++){
-    std::cout << "rank " << i + 1 << ": " << ivf_results[i].image_id << " distance: " << ivf_results[i].distance << '\n';  //test for the first image of the database
-}
-
-std::cout << "results returned: " << ivf_results.size() << '\n';  //no point in actually returns the results. 
-std::cout<< "====END OF IVFFLAT=====\n";
-
-std::cout<< "===BEGINING OF IVFFPQ====\n";
-
-
-//int n = database.size();
-//int centers_count = static_cast<int>(ceil(sqrt(n)));   //already present from before
-
-int M = 16;   //number of subvectors for each histogram
-int nbits = 8;
-int nprobe = 5;
-
-IVFPQIndex pq_index = build_ivfpq_index( database, centers_count, M, nbits);
-
-std::cout << "database size: " << database.size() << '\n';
-std::cout << "number of ivf centers: " << pq_index.centers.size() << '\n';
-std::cout << "number of inverted lists: " << pq_index.inverted_lists.size() << '\n';
-std::cout << "number of pq codebooks: " << pq_index.codebooks.size() << '\n';
-
-std::cout << "codes for first image: ";
-
-for (int i = 0; i < pq_index.compressed_codes[0].size(); i++) {
-    std::cout << pq_index.compressed_codes[0][i] << " ";
-}
-
-std::cout << '\n';
-
-// std::vector<float> query = database[0].histogram;   //again we test usingf the first image.
-// std::string query_image_id = database[0].image_id;   //already present
-
-std::vector<Searchresult> pq_results = ivfpq_search(query,query_image_id, database, pq_index, nprobe, 10);
-
-std::cout << "ivfpq search test\n";
-
-for (int i = 0; i < pq_results.size(); i++) {
-    std::cout << "rank " << i + 1 << ": " << pq_results[i].image_id << " distance: " << pq_results[i].distance << '\n';
-}
-
-std::cout << "results returned: " << pq_results.size() << '\n';
-std::cout<< "===END OF IVFPQ====\n";
-std::cout<< "===START OF HYPERCUBE====\n";   //database already built
-int kproj = 10;
-double w = 0.05;
-
-HypercubeIndex hypercube_index = build_hypercube_index(database, kproj, w, generator);
-int assigned_images = 0;
-
-for (int i = 0; i < hypercube_index.vertices.size(); i++) {   
-    assigned_images += hypercube_index.vertices[i].size();    
-}
- 
-std::cout << "hypercube vertices: " << hypercube_index.vertices.size() <<"\n";   //to check whether all imaghes were assigned
-std::cout << "assigned images: " << assigned_images << "\n";
-std::cout << "database images: " << database.size() << "\n";
-
-//hypercube search
-M = 500;   //already initialized with 16. now we need 500 to signal the max number of candidates we are going to examine per image query
-int probes = 10;  
-
-std::vector<Searchresult> hypercube_results = hypercube_search(query, query_image_id, database, hypercube_index, M, probes, 10, generator);  //query is [0] like before
-std::cout << "hypercube results:" <<"\n";
-
-for (int i = 0; i < hypercube_results.size(); i++) {
-    std::cout << hypercube_results[i].image_id << " " << hypercube_results[i].distance << "\n";
-}
+    return 0;
 }
 
 

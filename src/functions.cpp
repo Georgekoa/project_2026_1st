@@ -45,7 +45,7 @@ std::vector<std::string> txt_reader(std::string& file_path){
 
 }
 
-void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_vector, std::mt19937& gen){  //this function will return a vector of vectors so we can combine evrry sift descriptor (up until 500th row) , master mateix is a refernce so it will get updated
+void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_vector, std::mt19937& gen, int S){  //this function will return a vector of vectors so we can combine evrry sift descriptor (up until 500th row) , master mateix is a refernce so it will get updated
     
 
     std::vector<int> indexes(new_matrix.rows);  //init a vector with size as the # of descr
@@ -57,8 +57,8 @@ void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_
     std::shuffle(indexes.begin(), indexes.end(), gen);
 
     
-    if(new_matrix.rows > 500){ 
-        for(int i = 0 ; i < 500 ; i++){
+    if(new_matrix.rows > S){ 
+        for(int i = 0 ; i < S ; i++){
             std::vector<float> temp;
             for(int j = 0 ; j < new_matrix.cols ;j++){
                 temp.push_back(new_matrix.at<float>(indexes[i],j)); // pick the rows of the suffled order
@@ -67,7 +67,7 @@ void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_
     }
         return;
     }
-    if (new_matrix.rows <= 500 ) //could do it without second if, but we prefer it for clarity
+    if (new_matrix.rows <= S ) //could do it without second if, but we prefer it for clarity
     {
         for (int i = 0; i<new_matrix.rows;i++){     //we do the exact same iterastions but we do it for only the existing rows
             std::vector<float> temp;    
@@ -81,7 +81,7 @@ void vector_combine(cv::Mat& new_matrix,std::vector<std::vector<float>>& master_
     
 }
 
-void collect_training_descriptors(std::vector<std::string>  training_sequences,std::vector<std::vector<float>>& master_vector ){  
+void collect_training_descriptors(std::vector<std::string>  training_sequences,std::vector<std::vector<float>>& master_vector, int S ){    //S again being the max no of descriptors we use for training
     std::filesystem::path rootpath = "data/hpatches-sequences-release/hpatches-sequences-release";
     std::mt19937 gen(214);   //initializing a generator whihc we are going to use over and over
     for (int i = 0 ;  i < training_sequences.size() ; i++ ){     //should be 70 no matter what
@@ -91,7 +91,7 @@ void collect_training_descriptors(std::vector<std::string>  training_sequences,s
            std::filesystem::path cur_image_path = rootpath / current_sequence / (std::to_string(j) + ".ppm");
            std::string full_pathname = cur_image_path; //need the path as a string for sift_extrator()
            temp_matrix  = SIFT_extractor(full_pathname);
-           vector_combine(temp_matrix, master_vector, gen);
+           vector_combine(temp_matrix, master_vector, gen,S);
         }
     }
 }
@@ -131,4 +131,34 @@ std::vector<std::vector<float >> convert_mat_to_vector(cv::Mat& descriptors){
         converted_vector.push_back(temp);
     }
     return converted_vector;
+}
+
+DatasetSplit read_dataset_split(std::string& file_path) {
+    DatasetSplit dataset_split;
+    std::ifstream file(file_path);
+
+    if (file.is_open()==NULL) {
+        std::cerr << "error: could not open split file: " << file_path << "\n";
+        return dataset_split;
+    }
+
+    std::string sequence_name;
+    std::string split;
+
+    while (file >> sequence_name >> split) {     //using eactly the same logic as txt_reader
+
+        if (split == "train") {
+            dataset_split.training.push_back(sequence_name);
+        }
+        else if (split == "validation") {
+            dataset_split.validation.push_back(sequence_name);
+        }
+        else if (split == "test") {
+            dataset_split.test.push_back(sequence_name);
+        }
+    }
+
+    file.close();
+
+    return dataset_split;
 }

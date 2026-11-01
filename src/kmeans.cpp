@@ -34,7 +34,7 @@ float calculate_distance(std::vector<float>& point_a , std::vector<float>& point
     return sum;   //we return sum altough the sum here is not exactly the distance, but rather distance^2 , because it works either way the same way.
 }
 
-int find_nearest_center(std::vector<float> descriptor, std::vector<std::vector<float>> centers){
+int find_nearest_center(std::vector<float> descriptor, std::vector<std::vector<float>>& centers){
     float min = std::numeric_limits<float>::infinity();   
     int min_index = 0 ; 
     for(int i = 0 ; i < centers.size(); i++){                         //for each center calcualte the best center for the received descriptor and return it.

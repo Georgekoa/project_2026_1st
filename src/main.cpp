@@ -8,6 +8,9 @@
 
 
 int main() {
+    int seed = 214;
+    std::mt19937 generator(seed); //save the generator for all uses
+    
     //SIFT TESTER + histogram tester
     // std::string path = "data/samples/test.jpeg";
     // cv::Mat descriptors = SIFT_extractor(path);
@@ -241,7 +244,7 @@ std::cout<< "===BEGINING OF IVFFPQ====\n";
 //int n = database.size();
 //int centers_count = static_cast<int>(ceil(sqrt(n)));   //already present from before
 
-int M = 16;
+int M = 16;   //number of subvectors for each histogram
 int nbits = 8;
 int nprobe = 5;
 
@@ -272,8 +275,32 @@ for (int i = 0; i < pq_results.size(); i++) {
 }
 
 std::cout << "results returned: " << pq_results.size() << '\n';
+std::cout<< "===END OF IVFPQ====\n";
+std::cout<< "===START OF HYPERCUBE====\n";   //database already built
+int kproj = 10;
+double w = 0.05;
 
+HypercubeIndex hypercube_index = build_hypercube_index(database, kproj, w, generator);
+int assigned_images = 0;
 
+for (int i = 0; i < hypercube_index.vertices.size(); i++) {   
+    assigned_images += hypercube_index.vertices[i].size();    
+}
+ 
+std::cout << "hypercube vertices: " << hypercube_index.vertices.size() <<"\n";   //to check whether all imaghes were assigned
+std::cout << "assigned images: " << assigned_images << "\n";
+std::cout << "database images: " << database.size() << "\n";
+
+//hypercube search
+M = 500;   //already initialized with 16. now we need 500 to signal the max number of candidates we are going to examine per image query
+int probes = 10;  
+
+std::vector<Searchresult> hypercube_results = hypercube_search(query, query_image_id, database, hypercube_index, M, probes, 10, generator);  //query is [0] like before
+std::cout << "hypercube results:" <<"\n";
+
+for (int i = 0; i < hypercube_results.size(); i++) {
+    std::cout << hypercube_results[i].image_id << " " << hypercube_results[i].distance << "\n";
+}
 }
 
 

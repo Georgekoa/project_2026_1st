@@ -406,3 +406,125 @@ std::vector<Searchresult> ivfpq_search(std::vector<float>& query, std::string& q
 
     return results;
 }
+
+int get_hypercube_vertex(std::vector<float>& point, HypercubeIndex& index, std::mt19937& generator){
+    int vertex = 0;
+    std::uniform_int_distribution<int> bit_distribution(0, 1);    //either 1 or 0 with 50% each, so we assign a numbet o each mapping the first imr and store it in bit_mappings
+
+    for (int i = 0; i < index.kproj; i++) {  //for each projection 
+        double projection = 0;
+
+        for (int j = 0; j < index.dimensions; j++) {    //calculate the dot product between the image histogram and the random projection vector
+            projection += point[j] * index.projections[i][j];
+        }
+
+        long long bucket = static_cast<long long>(std::floor((projection + index.shifts[i]) / index.w));   //add the random shift and divide by w and take the floor. this gives us the hash bucket
+ 
+        if (index.bit_mappings[i].find(bucket) == index.bit_mappings[i].end()) {  //we look up that bucket in bit_mappings
+            index.bit_mappings[i][bucket] = bit_distribution(generator);   //if we haven't encountered it before we assign it a random bit (0 or 1)
+        }
+
+        int bit = index.bit_mappings[i][bucket]; //use that bit to construct the vertex number
+
+        vertex = vertex | (bit << i);
+    }
+
+    return vertex;
+}
+
+HypercubeIndex build_hypercube_index(std::vector<ImageData>& database, int kproj, double w, std::mt19937& generator){  //building the struct index
+    HypercubeIndex index;
+
+    index.kproj = kproj;      //init the index
+    index.w = w;
+    if (database.empty() || kproj <= 0 || w <= 0){  //error handling
+        std::cerr<< "invalid parameters\n";
+        return index;
+    }
+    index.dimensions = database[0].histogram.size();  
+
+    std::normal_distribution<float> normal_distribution(0.0, 1.0);        //define the random distributions
+    std::uniform_real_distribution<double> shift_distribution(0.0, w);
+
+    index.projections.resize(kproj);  //preparing the storage
+    index.shifts.resize(kproj);
+    index.bit_mappings.resize(kproj);
+    index.vertices.resize(1 << kproj);
+
+    for (int i = 0; i < kproj; i++) {   //generating the projections
+        index.projections[i].resize(index.dimensions);
+
+        for (int j = 0; j < index.dimensions; j++) {
+            index.projections[i][j] = normal_distribution(generator);
+        }
+
+        index.shifts[i] = shift_distribution(generator); 
+    }
+
+    for (int i = 0; i < database.size(); i++) {    //assign database images to vertices
+        int vertex = get_hypercube_vertex(database[i].histogram, index, generator);
+
+        index.vertices[vertex].push_back(i);
+    }
+
+    return index;
+}
+
+std::vector<Searchresult> hypercube_search(std::vector<float>& query, std::string& query_image_id, std::vector<ImageData>& database, HypercubeIndex& index, int M, int probes, int total_results, std::mt19937& generator){  //acxtual search function
+    std::vector<Searchresult> results;
+
+    if (database.empty() || index.vertices.empty() || query.size() != index.dimensions) { //check if the index and query are valid
+        return results;
+    }
+
+    int query_vertex = get_hypercube_vertex(query, index, generator);   //find the vertex that the query belongs to
+
+    std::vector<std::pair<int, int>> vertex_distances;   //store the hamming distance and vertex id for every vertex
+
+    for (int i = 0; i < index.vertices.size(); i++) {   //calculate the hamming distance between the query vertex and every other vertex
+        int difference = query_vertex ^ i;
+        int hamming_distance = 0;
+
+        while (difference > 0) {   //count the number of different bits between the two vertices
+            hamming_distance += difference & 1;
+            difference >>= 1;
+        }
+
+        vertex_distances.push_back({hamming_distance, i});
+    }
+
+    std::sort(vertex_distances.begin(), vertex_distances.end());   //sort vertices by hamming distance so we visit the closest ones first
+
+    int examined = 0;
+    
+    for (int i = 0; i < probes && i < vertex_distances.size(); i++) {    //visit at most probes vertices
+        int vertex = vertex_distances[i].second;
+
+        for (int j = 0; j < index.vertices[vertex].size(); j++) {    //examine the database images stored in the current vertex
+            int image_index = index.vertices[vertex][j];
+
+            if (database[image_index].image_id == query_image_id) {    //skip the query image if it is also part of the database
+                continue;
+            }
+            if (examined >= M) {     //stop if we have examined the maximum number of candidates
+                break;
+            }
+            float distance = calculate_distance(query, database[image_index].histogram, index.dimensions); //calculate the distance between the query and the candidate image
+            
+            results.push_back({database[image_index].image_id, distance}); //store the candidate image id and its distance
+            examined++;
+        }
+
+        if (examined >= M) {   //stop visiting vertices once we reach the candidate limit
+            break;
+        }
+    }
+
+    std::cout<< "examined " <<examined << "\n"; //see the number o candidates out of which the top 10 will appear
+    std::sort(results.begin(), results.end(), compare_distance);  //sort by distance,we use the same compare distance as before
+    if (results.size() > total_results) {    //keep only the requested number of results
+        results.resize(total_results);
+    }
+
+    return results;
+}

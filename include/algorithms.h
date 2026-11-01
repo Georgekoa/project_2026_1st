@@ -57,4 +57,20 @@ struct IVFPQIndex{
 
 IVFPQIndex build_ivfpq_index(std::vector<ImageData>& database, int centers_count, int M, int nbits);
 std::vector<Searchresult> ivfpq_search(std::vector<float>& query,std::string& query_image_id,std::vector<ImageData>& database, IVFPQIndex& index, int nprobe, int total_results);
+
+
+struct HypercubeIndex {
+    int kproj;     //assignments parameters
+    double w;
+    int dimensions;
+
+    std::vector<std::vector<float>> projections;
+    std::vector<double> shifts;
+    std::vector<std::unordered_map<long long, int>> bit_mappings;  //mapping the buckets with bits (0,1) to create a vertex corresponign 
+    std::vector<std::vector<int>> vertices;
+};
+
+HypercubeIndex build_hypercube_index(std::vector<ImageData>& database, int kproj, double w, std::mt19937& generator);     //passing the generator as argument since its going to be the same (214) across the whole project
+std::vector<Searchresult> hypercube_search(std::vector<float>& query, std::string& query_image_id, std::vector<ImageData>& database, HypercubeIndex& index, int M, int probes, int total_results, std::mt19937& generator);
+int get_hypercube_vertex(std::vector<float>& point, HypercubeIndex& index, std::mt19937& generator);
 #endif

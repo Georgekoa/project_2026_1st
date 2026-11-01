@@ -129,7 +129,7 @@ std::vector<Searchresult> search_algorithm(QueryData& query, std::vector<ImageDa
 }
 
 
-EvaluationResults evaluate_algorithm(std::vector<QueryData>& queries, std::vector<ImageData>& database, std::string algorithm, LSHIndex& lsh_index, IVFFlatIndex& ivf_index, IVFPQIndex& pq_index, HypercubeIndex& hypercube_index, int nprobe, int M, int probes, std::mt19937& generator) {
+EvaluationResults evaluate_algorithm(std::vector<QueryData>& queries, std::vector<ImageData>& database, std::string algorithm, LSHIndex& lsh_index, IVFFlatIndex& ivf_index, IVFPQIndex& pq_index, HypercubeIndex& hypercube_index, int nprobe, int M, int probes, std::mt19937& generator){
 
     EvaluationResults evaluation;
 

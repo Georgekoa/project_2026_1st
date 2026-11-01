@@ -93,4 +93,5 @@ this function uses our helper functions. it initializes the centers, assign them
 
 ## for random generation among pictures we decided to initialize a generator inside collect_training_descriptors who calls vector_combine , insteda of using the same generator (same seed) over and over on images. that would cause images with the same # of desc to have the exact same sequence of picked descs. so we will pass an existing generator as argument to the vector_combine functon, to boost randomness
 
-**IVFFlatIndex build_ivf_index(std::vector<ImageData>& database , int centers_count)**  uses components from before. we run the same kmeans to create centers based on histograms instead of descriptors. then we create the assignments vector and iterate though each images center to add the image to this centers cell in the vector.
+**IVFFlatIndex build_ivff_index(std::vector<ImageData>& database , int centers_count)**  uses components from before. we run the same kmeans to create centers based on histograms instead of descriptors. then we create the assignments vector and iterate though each images center to add the image to this centers cell in the vector.  
+

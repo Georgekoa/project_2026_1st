@@ -43,7 +43,18 @@ struct IVFFlatIndex{     //actual IVFFlat database
     std::vector<std::vector<int>> inverted_lists;  //inverted_lists.size() is the # of centers. and each cell has another vector of ints that stores the indexes of the actual histogram that belong to current center
 };
 std::vector<std::vector<float>> create_histogram_database(std::vector<ImageData>& database);
-IVFFlatIndex build_ivff_index(std::vector<ImageData>& database, int centers_count);
+IVFFlatIndex build_ivff_index(std::vector<ImageData>& database, int centers_count);   
 std::vector<int> find_nearest_centers(std::vector<float>& query, IVFFlatIndex& index, int nprobe);
 std::vector<Searchresult> ivfflat_search(std::vector<float>& query, std::string& query_image_id, std::vector<ImageData>& database, IVFFlatIndex& index, int nprobe, int total_results);
+
+
+struct IVFPQIndex{
+    std::vector<std::vector<float>> centers;      
+    std::vector<std::vector<int>> inverted_lists;    //both are the same fields as IVFFlat
+    std::vector<std::vector<std::vector<float>>> codebooks;  //16 codebooks -> containing 256 centers of 16 dimensions
+    std::vector<std::vector<int>> compressed_codes;  //16 ints to represent each image
+};
+
+IVFPQIndex build_ivfpq_index(std::vector<ImageData>& database, int centers_count, int M, int nbits);
+std::vector<Searchresult> ivfpq_search(std::vector<float>& query,std::string& query_image_id,std::vector<ImageData>& database, IVFPQIndex& index, int nprobe, int total_results);
 #endif

@@ -233,6 +233,47 @@ for (int i = 0; i < ivf_results.size(); i++){
 }
 
 std::cout << "results returned: " << ivf_results.size() << '\n';  //no point in actually returns the results. 
+std::cout<< "====END OF IVFFLAT=====\n";
+
+std::cout<< "===BEGINING OF IVFFPQ====\n";
+
+
+//int n = database.size();
+//int centers_count = static_cast<int>(ceil(sqrt(n)));   //already present from before
+
+int M = 16;
+int nbits = 8;
+int nprobe = 5;
+
+IVFPQIndex pq_index = build_ivfpq_index( database, centers_count, M, nbits);
+
+std::cout << "database size: " << database.size() << '\n';
+std::cout << "number of ivf centers: " << pq_index.centers.size() << '\n';
+std::cout << "number of inverted lists: " << pq_index.inverted_lists.size() << '\n';
+std::cout << "number of pq codebooks: " << pq_index.codebooks.size() << '\n';
+
+std::cout << "codes for first image: ";
+
+for (int i = 0; i < pq_index.compressed_codes[0].size(); i++) {
+    std::cout << pq_index.compressed_codes[0][i] << " ";
+}
+
+std::cout << '\n';
+
+// std::vector<float> query = database[0].histogram;   //again we test usingf the first image.
+// std::string query_image_id = database[0].image_id;   //already present
+
+std::vector<Searchresult> pq_results = ivfpq_search(query,query_image_id, database, pq_index, nprobe, 10);
+
+std::cout << "ivfpq search test\n";
+
+for (int i = 0; i < pq_results.size(); i++) {
+    std::cout << "rank " << i + 1 << ": " << pq_results[i].image_id << " distance: " << pq_results[i].distance << '\n';
+}
+
+std::cout << "results returned: " << pq_results.size() << '\n';
+
+
 }
 
 

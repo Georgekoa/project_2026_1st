@@ -237,3 +237,172 @@ std::vector<Searchresult> ivfflat_search(std::vector<float>& query, std::string&
 
     return results;
 }
+
+IVFPQIndex build_ivfpq_index(std::vector<ImageData>& database, int centers_count, int M, int nbits){
+    IVFPQIndex index;
+    int dimensions = 256;
+    int subvector_size = dimensions / M;
+    int pq_centers_count = pow(2, nbits);
+
+    std::vector<std::vector<float>> histogram_database = create_histogram_database(database);  //extract all database histograms
+
+    index.centers = kmeans(histogram_database, dimensions,5 , centers_count);  //building the ivf index
+    index.inverted_lists.resize(centers_count);  //creating the size beforehand so we can access each cell without segfaults
+    
+    std::vector<int> assignments = assign_centers(histogram_database, index.centers); //assign every image to its nearest ivf center (same as before)
+
+    for (int i = 0; i < assignments.size(); i++) {
+        int center_index = assignments[i];
+        index.inverted_lists[center_index].push_back(i);
+    }
+
+    std::vector<std::vector<float>> residuals;    //calculate residuals (difference from the center)
+    for (int i = 0; i < histogram_database.size(); i++) {
+
+        int center_index = assignments[i];
+        std::vector<float> residual;
+
+        for (int j = 0; j < dimensions; j++) {
+            float value =
+                histogram_database[i][j] - index.centers[center_index][j];
+
+            residual.push_back(value);
+        }
+        residuals.push_back(residual);
+    }
+
+    index.codebooks.resize(M);   //train the codebooks
+
+    for (int m = 0; m < M; m++) {
+
+        std::vector<std::vector<float>> subvector_database;
+
+        for (int i = 0; i < residuals.size(); i++) {      //extract the corresponding subvector from every residual
+
+            std::vector<float> subvector;
+            for (int j = 0; j < subvector_size; j++) {
+                int position = m * subvector_size + j;
+                subvector.push_back(residuals[i][position]);
+            }
+            subvector_database.push_back(subvector);
+        }
+
+        index.codebooks[m] = kmeans(subvector_database, subvector_size, 5, pq_centers_count);   //train one codebook for this subvector position
+    }
+
+    
+
+    index.compressed_codes.resize(database.size());   //compression
+    for (int i = 0; i < residuals.size(); i++) {
+        
+        for (int m = 0; m < M; m++) {    //every image receives M integer codes
+
+            std::vector<float> subvector;
+            for (int j = 0; j < subvector_size; j++) {
+
+                int position = m * subvector_size + j;
+
+                subvector.push_back(residuals[i][position]);
+            }
+            int code = find_nearest_center(subvector, index.codebooks[m]);    //find the closest codebook center
+            index.compressed_codes[i].push_back(code);
+        }
+    }
+
+    return index;
+}
+
+std::vector<Searchresult> ivfpq_search(std::vector<float>& query, std::string& query_image_id, std::vector<ImageData>& database, IVFPQIndex& index, int nprobe, int total_results){
+    std::vector<Searchresult> results;
+
+    int M = index.codebooks.size(); //get the number of subvectors
+    int subvector_size = 256 / M; //calculate the dimensions of each subvector
+    int pq_centers_count = index.codebooks[0].size(); //get the number of centers in each PQ codebook
+
+    std::vector<int> nearest_centers;   //find the nprobe nearest IVF centers
+    std::vector<bool> selected(index.centers.size(), false);
+
+    if (nprobe > index.centers.size()) {  //same check as before
+        nprobe = index.centers.size();
+    }
+
+    for (int i = 0; i < nprobe; i++) {
+        float min_distance = std::numeric_limits<float>::max();
+        int nearest_center = -1;
+
+        for (int j = 0; j < index.centers.size(); j++) {
+            if (selected[j] == false) {
+                float distance = calculate_distance(query, index.centers[j], 256);
+
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    nearest_center = j;
+                }
+            }
+        }
+
+        if (nearest_center != -1) {
+            nearest_centers.push_back(nearest_center);
+            selected[nearest_center] = true;
+        }
+    }
+
+    for (int i = 0; i < nearest_centers.size(); i++) {    //search the selected inverted lists
+        int center_index = nearest_centers[i];
+        std::vector<float> query_residual;   //calculate the query residual for this ivf center
+
+        for (int j = 0; j < 256; j++) {
+            float value = query[j] - index.centers[center_index][j];
+            query_residual.push_back(value);
+        }
+
+        std::vector<std::vector<float>> lookup_table;   //build the distance lookup tables
+
+        for (int m = 0; m < M; m++) {
+            std::vector<float> query_subvector;
+
+            for (int j = 0; j < subvector_size; j++) {
+                int position = m * subvector_size + j;
+                query_subvector.push_back(query_residual[position]);
+            }
+
+            std::vector<float> distances;
+
+            for (int c = 0; c < pq_centers_count; c++) {
+                float distance = calculate_distance(query_subvector, index.codebooks[m][c], subvector_size);
+                distances.push_back(distance);
+            }
+
+            lookup_table.push_back(distances);
+        }
+
+        std::vector<int> candidates = index.inverted_lists[center_index];    //retrieve the candidates from the inverted list
+
+        for (int j = 0; j < candidates.size(); j++) {
+            int image_index = candidates[j];
+
+            
+            if (database[image_index].image_id == query_image_id) {    //exclude the query image from the results (that why we included the query image id as an argument)
+                continue;
+            }
+            float total_distance = 0;
+            for (int m = 0; m < M; m++) {    //calculate the approximate distance using the pq codes
+                int code = index.compressed_codes[image_index][m];
+                total_distance += lookup_table[m][code];
+            }
+
+            Searchresult result;
+            result.image_id = database[image_index].image_id;
+            result.distance = total_distance;
+            results.push_back(result);
+        }
+    }
+
+    std::sort(results.begin(), results.end(), compare_distance);   //sort the results and keep only the requested number
+
+    if (results.size() > total_results) {
+        results.resize(total_results);
+    }
+
+    return results;
+}

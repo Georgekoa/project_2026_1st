@@ -494,18 +494,7 @@ The sequence prefixes identify the two groups in our HPatches split:
 
 We need to calculate the same metrics separately for these groups and include them in the report.
 
-### Step 5: Write the report
-
-The final report should include:
-
-- A short description of the datasets and split.
-- How SIFT and BoVW are used to represent the images.
-- How each of the five search methods works.
-- The parameters used in the experiments.
-- Tables comparing Recall@5, Recall@10, mAP@10 and average query time.
-- Overall results and separate illumination/viewpoint results.
-- A discussion of the speed-versus-quality trade-off.
-- A conclusion based on the actual test results.
+**In order to clarify, the above is the correct way to write the requested report, however due to time constraints we run a limited number of experiments, primarily with D = 10000 images**
 
 ---
 
